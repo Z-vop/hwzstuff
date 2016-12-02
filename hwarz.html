@@ -1,7 +1,21 @@
 <!DOCTYPE html>
+<html>
 <head>
 	
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js">
+	</script>
+
+	<script>
+		$(document).ready(function(){
+			$("#firewall_icon").hide();
+		});
+
+		function greenwifi(){
+			$("#line").animate({width: "142px"});
+			$("#firewall_icon").show();
+		}
+	</script>
+
 	<style>
 		.icon {position:absolute; width:140px; height:140px;}
 	</style>
@@ -12,14 +26,15 @@
 	<div id="gameplayscene" style="width:700px;height:700px;position:absolute;left:0px;background-color:black;border:6px solid #00ff26;">
 
 		<div class="icon" style="left:280px;top:280px">
-			<img src="images/greenwifi.png" width=140 height=140/>
+			<input type="image" style="outline:none" id="center_icon" src="images/greenwifi.png" onclick="greenwifi()" width=140 height=140/>
 		</div>
 
-		<div style="position:absolute;left:423px;top:350px;width:142px;height:10px;background-color:#00ff26"></div>
+		<div style="position:absolute;left:423px;top:350px;width:0px;height:10px;background-color:#00ff26" id="line"></div>
 
 		<div class="icon" style="left:560px;top:280px;">
-			<img src="images/firewall.png" width=140 height=140/>
-		</div>
+			<input id="firewall_icon" type="image" src="images/firewall.png" width=140 height=140/>
+		</div>`
 
 	</div>
 </body>
+</html>
