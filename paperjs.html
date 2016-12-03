@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+
+	<!-- Define inlined PaperScript associate it with myCanvas -->
+    <script type="text/paperscript" canvas="myCanvas">
+    	$('#clover').hide();
+		var raster = new Raster('clover');
+		raster.height = 100;
+		raster.width = 100;
+
+		// Move the raster to the center of the view
+		raster.position = view.center;
+
+		// Scale the raster by 50%
+		//raster.scale(0.1);
+
+		// Rotate the raster by 45 degrees:
+		raster.rotate(45);
+	</script>
+
+	<style type="text/css">
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Scale canvas with resize attribute to full size */
+canvas[resize] {
+    width: 100%;
+    height: 100%;
+}
+</style>
+
+</head>
+<body>
+
+<img id="clover" src="images/badClover.PNG">
+<canvas id="myCanvas" resize>
+
+
+</body>
