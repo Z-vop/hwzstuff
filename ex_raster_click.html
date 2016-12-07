@@ -1,48 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Example of mouse event on Raster item</title>
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Load the Paper.js library -->
     <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
 
-    <!-- Define inlined PaperScript associate it with myCanvas -->
-    <script type="text/paperscript" canvas="myCanvas">
-    	$('#clover').hide();
-		var raster = new Raster('clover');
-		raster.height = 100;
-		raster.width = 100;
+    <script type="text/javascript">
+        $(document).ready(function(){$('#clover').hide();});
+    </script>
 
-		// Move the raster to the center of the view
-		raster.position = view.center;
-
-		// Scale the raster by 50%
-		//raster.scale(0.1);
-
-		// Rotate the raster by 45 degrees:
-		raster.rotate(45);
-	</script>
-
-    <style type="text/css">
+    <style>
         html,
         body {
             margin: 0;
             overflow: hidden;
             height: 100%;
+            background: black;
         }
-
-        /* Scale canvas with resize attribute to full size */
-        canvas[resize] {
-            width: 100%;
-            height: 100%;
+        canvas[resize]{
+            width:100%;
+            height:100%;
         }
     </style>
 
+
+    <!-- Define inlined PaperScript associate it with myCanvas -->
+    <script type="text/paperscript" canvas="myCanvas">
+	var raster = new Raster('clover');
+	raster.position.x = 150;
+	raster.position.y = 180;
+
+	var path = new Path();
+	path.sendToBack();
+	path.add(new Point(raster.position.x+40, raster.position.y));
+	path.add(new Point(raster.position.x+40, raster.position.y));
+	path.strokeWidth = 5;
+	path.strokeColor = '#00aa12';
+
+    //This function will increment the X coordinate of the second segment in a path to its newX property
+	var moveSegmentX = function() {
+	    var segment = this.segments[1]; // gets the second segment of the path
+	    if(segment.point.x <= this.newX) { // newX is the desired X coordinate
+	        segment.point.x += 3;
+	    } else {
+	        this.off('frame', moveSegmentX); // This removes the event handler since we are done
+	    }
+    }
+
+	raster.onMouseDown = function(event){
+	    path.newX = 270;
+		path.on('frame', moveSegmentX);
+	}
+
+</script>
+
 </head>
+
+
 <body>
-
-<img id="clover" src="images/badClover.PNG">
+<img id="clover" src="images/greenwifi.png">
 <canvas id="myCanvas" resize></canvas>
-
 </body>
+</html>

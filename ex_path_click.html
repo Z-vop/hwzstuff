@@ -1,38 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
 
-<!-- Load the Paper.js library -->
-<script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+	<style>
+		html,
+		body {
+			margin: 0;
+			overflow: hidden;
+			height: 100%;
+		}
+		canvas[resize]{
+			width:100%;
+			height:100%;
+		}
+	</style>
 
-<!-- Define inlined PaperScript associate it with myCanvas -->
-<script type="text/paperscript" canvas="myCanvas">
-// Create a circle shaped path at the center of the view:
-var path = new Path.Circle({
-    center: view.center,
-    radius: 25,
-    fillColor: 'black'
-});
+	<!-- Define inlined PaperScript associate it with myCanvas -->
+	<script type="text/paperscript" canvas="myCanvas">
+		// Create a circle shaped path at the center of the view:
+		var path = new Path.Circle({
+			center: view.center,
+			radius: 25,
+			fillColor: 'black'
+		});
 
-// When the mouse is pressed on the item,
-// set its fill color to red:
-path.onMouseDown = function(event) {
-    this.fillColor = 'red';
-}
-</script>
+		// When the mouse is clicked on the item,
+		// set its fill color to red:
+		path.onClick = function(event) {
+			this.fillColor = 'red';
+		}
+	</script>
 </head>
-
 
 <body>
 	<canvas id="myCanvas" resize></canvas>
-	<style>
-	myCanvas[resize]{
-			width:100%;
-			height:100%;
-
-
-		}
-	</style>
 </body>
 </html>
