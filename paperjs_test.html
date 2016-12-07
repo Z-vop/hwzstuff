@@ -2,7 +2,7 @@
 <html>
 <head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	
+
 <!-- Load the Paper.js library -->
 <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
 
@@ -26,5 +26,13 @@ path.onMouseDown = function(event) {
 
 <body>
 	<canvas id="myCanvas" resize></canvas>
+	<style>
+	myCanvas[resize]{
+			width:100%;
+			height:100%;
+
+
+		}
+	</style>
 </body>
 </html>
