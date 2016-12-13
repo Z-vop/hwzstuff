@@ -37,6 +37,9 @@
 		connectNodes(2, 3);
 		connectNodes(1, 3);
 
+		// Add a selection circle
+		createSelect(nodes[1]);
+		removeSelect(nodes[1]);
 
 
         // ## Drawing Functions ## //
@@ -82,10 +85,54 @@
             innerNode.fillColor.saturation -= .1;
 
             var arcNode = createArc(x, y, r + w, c);
-            var groupNode = new Group([outerNode, innerNode, arcNode]);
+
+            // Make a transparent circle over the node as a consistent target for mouse events
+            var targetNode = new Path.Circle({
+                center: new Point(x,y),
+                radius: r + w,
+                fillColor: new Color(1,0.001)
+            });
+
+            var groupNode = new Group([outerNode, innerNode, arcNode, targetNode]);
+
+            targetNode.onMouseEnter = function(event) {
+                console.log(event);
+                createSelect(groupNode);
+            }
+
+            targetNode.onMouseLeave = function(event) {
+                console.log(event);
+                removeSelect(groupNode);
+            }
+
             return groupNode;
 		}
 
+	    function createSelect(node) {
+	        if(!(node.selectNode === undefined)) {
+	            console.log("already selected");
+	            return;
+	        }
+            var r = node.bounds.width / 2; // radius
+
+            var n = new Path.Circle({
+                center: new Point(node.position.x, node.position.y),
+                radius: r,
+                strokeColor: 'white',
+                strokeWidth: 2,
+                shadowColor: 'white',
+                shadowBlur: 40,
+                shadowOffset: new Point(0, 0)
+            });
+            node.selectNode = n;
+		}
+
+		function removeSelect(node) {
+		    node.selectNode.remove();
+		    delete node.selectNode;
+		}
+
+        // Draws a half circle
 		function createArc(x, y, r, c) {
 		    // Draw the outside curve of a half-circle
 		    var start = new Point(x, y-r);
