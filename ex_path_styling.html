@@ -22,14 +22,18 @@
 
         // Create some nodes
         var nodes = [];
-		nodes[0] = createNode(100,100, 50, 0, '#7BBC9B'); //green
-		nodes[1] = createNode(400,100, 40, .5, '#A43234'); //red
-		nodes[2] = createNode(250,250, 45, 1, '#FBC23D'); //yellow
+		nodes[0] = createNode(100,100, 50, '#7BBC9B'); //green
+		nodes[1] = createNode(400,100, 30, '#A43234'); //red
+		nodes[2] = createNode(250,250, 45, '#FBC23D'); //yellow
 
         // Clone a node, move it, and change its color
 		nodes[3] = nodes[2].clone();
 		nodes[3].position.x += 300;
 		setNodeHue(nodes[3], 200); // blue
+
+        // Add another node
+		nodes[4] = createNode(700,100, 30, 'grey');
+		//nodes[4].scale(1.5);
 
         // Draw lines between some nodes
 		connectNodes(0, 1);
@@ -62,7 +66,7 @@
 		}
 
 
-		function createNode(x, y, r, d, c) {
+		function createNode(x, y, r, c) {
             var w = 15; // border width
 
             var outerNode = new Path.Circle({
@@ -73,8 +77,15 @@
                 shadowBlur: 80,
                 shadowOffset: new Point(0, 0)
             });
-            outerNode.shadowColor.brightness = 1;
-            outerNode.shadowColor.saturation = 1;
+
+            // Make the shadow
+            // If the node color is a shade of grey (no saturation) shadow color must be white
+            if(outerNode.fillColor.saturation == 0) {
+                outerNode.shadowColor = new Color(.7);
+            } else {
+                outerNode.shadowColor.brightness = 1; // Boost the shadow brightness to max
+                outerNode.shadowColor.saturation = 1; // Boost the shadow color saturation
+            }
 
             var innerNode = new Path.Circle({
                 center: new Point(x,y),
@@ -96,12 +107,9 @@
             var groupNode = new Group([outerNode, innerNode, arcNode, targetNode]);
 
             targetNode.onMouseEnter = function(event) {
-                console.log(event);
                 createSelect(groupNode);
             }
-
             targetNode.onMouseLeave = function(event) {
-                console.log(event);
                 removeSelect(groupNode);
             }
 
@@ -109,17 +117,13 @@
 		}
 
 	    function createSelect(node) {
-	        if(!(node.selectNode === undefined)) {
-	            console.log("already selected");
-	            return;
-	        }
-            var r = node.bounds.width / 2; // radius
+	        var r = node.bounds.width / 2; // radius
 
             var n = new Path.Circle({
                 center: new Point(node.position.x, node.position.y),
                 radius: r,
                 strokeColor: 'white',
-                strokeWidth: 2,
+                strokeWidth: 3,
                 shadowColor: 'white',
                 shadowBlur: 40,
                 shadowOffset: new Point(0, 0)
