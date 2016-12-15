@@ -11,8 +11,7 @@
     </script>
 
     <style>
-        html,
-        body {
+        html, body {
             margin: 0;
             overflow: hidden;
             height: 100%;
@@ -27,39 +26,38 @@
 
     <!-- Define inlined PaperScript associate it with myCanvas -->
     <script type="text/paperscript" canvas="myCanvas">
-	var raster = new Raster('clover');
-	raster.position.x = 150;
-	raster.position.y = 180;
+      	var raster = new Raster('clover');
+      	raster.position.x = 150;
+      	raster.position.y = 180;
 
-	var path = new Path();
-	path.sendToBack();
-	path.add(new Point(raster.position.x+40, raster.position.y));
-	path.add(new Point(raster.position.x+40, raster.position.y));
-	path.strokeWidth = 5;
-	path.strokeColor = '#00aa12';
+      	var path = new Path();
+      	path.sendToBack();
+      	path.add(new Point(raster.position.x+40, raster.position.y));
+      	path.add(new Point(raster.position.x+40, raster.position.y));
+      	path.strokeWidth = 5;
+      	path.strokeColor = '#00aa12';
 
-    //This function will increment the X coordinate of the second segment in a path to its newX property
-	var moveSegmentX = function() {
-	    var segment = this.segments[1]; // gets the second segment of the path
-	    if(segment.point.x <= this.newX) { // newX is the desired X coordinate
-	        segment.point.x += 3;
-	    } else {
-	        this.off('frame', moveSegmentX); // This removes the event handler since we are done
-	    }
-    }
+        //This function will increment the X coordinate of the second segment in a path to its newX property
+      	var moveSegmentX = function() {
+            if(!this.hasOwnProperty('newX')) { throw new Error(arguments.callee.name + ': Missing newX property')};
+            if(!this.hasOwnProperty('segments')) { throw new Error(arguments.callee.name + ': Object has no segments')};
+            var segment = this.segments[1]; // gets the second segment of the path
+            if(segment.point.x <= this.newX) { // newX is the desired X coordinate
+                segment.point.x += 3;
+            } else {
+                this.off('frame', moveSegmentX); // This removes the event handler since we are done
+            }
+        }
 
-	raster.onMouseDown = function(event){
-	    path.newX = 270;
-		path.on('frame', moveSegmentX);
-	}
-
+      	raster.onMouseDown = function(event){
+      	    path.newX = 270;
+        		path.on('frame', moveSegmentX);
+      	}
 </script>
-
 </head>
 
-
 <body>
-<img id="clover" src="images/greenwifi.png">
-<canvas id="myCanvas" resize></canvas>
+    <img id="clover" src="images/greenwifi.png">
+    <canvas id="myCanvas" resize></canvas>
 </body>
 </html>

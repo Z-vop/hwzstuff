@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+
+    <!-- Define inlined PaperScript associate it with myCanvas -->
+    <script type="text/paperscript" canvas="myCanvas">
+        var coins = 0;
+
+        function onFrame(event) {
+            // event.count is the number of times the frame event was fired
+            // We want to fire once per second
+            if(event.count % 60 == 0) {
+                coins++;
+                console.log(coins);
+            }
+
+        }
+	</script>
+</head>
+
+<body>
+<canvas id="myCanvas" resize></canvas>
+</body>
+</html>
