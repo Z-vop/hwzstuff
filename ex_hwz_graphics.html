@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+            background: black;
+        }
+        canvas[resize]{
+            width:100%;
+            height:100%;
+        }
+    </style>
+
+    <script type="text/javascript" src="js/hacknode_graphics.js"></script>
+
+    <script type="text/javascript">
+        paper.install(window);
+
+        // Only executed our code once the DOM is ready.
+        window.onload = function() {
+            // Get a reference to the canvas object
+            var canvas = document.getElementById('myCanvas');
+            // Create an empty project and a view for the canvas:
+            paper.setup(canvas);
+
+
+
+            // Create some nodes
+            nodes[0] = new Node(100, 100, 50, '#7BBC9B'); //green
+            nodes[1] = new Node(400, 100, 30, '#A43234'); //red
+            nodes[2] = new Node(250, 250, 45, '#FBC23D'); //yellow
+            nodes[3] = new Node(550, 250, 45, '#47C2FE'); //blue
+
+            // Add another node
+            nodes[4] = new Node(700, 100, 30, 'grey');
+
+            // Draw lines between some nodes
+            connectNodes(0, 1);
+            connectNodes(0, 2);
+            connectNodes(2, 3);
+            connectNodes(1, 3);
+
+            // Draw the view now:
+            view.draw();
+
+
+            // Toggle selection circle on mouse click
+            nodes[0].onMouseDown = function (event) {
+                console.log(event);
+                console.log(this);
+                var node = event.target;
+                if (!node.isSelected()) {
+                    node.selectOn();
+                } else {
+                    node.selectOff();
+                }
+            };
+
+            // Change node color to red
+            nodes[3].onMouseDown = function(event){
+                nodes[3].setBaseColor('#A43234'); //red
+            }
+
+
+            // These are not working right yet
+            nodes[4].mouseTarget.onMouseEnter = function (event) {
+                setDamage(this, 1);
+            };
+            nodes[4].mouseTarget.onMouseLeave = function (event) {
+                setDamage(this, 0);
+            };
+        };
+    </script>
+</head>
+
+<body>
+<canvas id="myCanvas" resize></canvas>
+</body>
+</html>
