@@ -1,0 +1,136 @@
+<!-- This is an example of how to use the hacknode_graphics.js file -->
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+            background: black;
+        }
+        canvas[resize]{
+            width:100%;
+            height:100%;
+        }
+    </style>
+
+    <script type="text/javascript" src="js/hacknode_graphics.js"></script>
+
+    <script type="text/javascript">
+        paper.install(window);
+
+        // Only executed our code once the DOM is ready.
+        window.onload = function() {
+            // Get a reference to the canvas object
+            var canvas = document.getElementById('myCanvas');
+            // Create an empty project and a view for the canvas:
+            paper.setup(canvas);
+
+            // Global Game State
+            var addingPower = false;    // We are giving power to the user
+            var computerpower = 0;      // How much power the user has
+            var gameover = false;
+            var updateSpeed = 20;       // How fast the power is updated
+            var rate = 1;               // How much power to add each update
+            var clickorder = 2;         // The next node that can be clicked
+            
+
+            function makeNode(x,y,size,color,p_order) {
+              var node = new Node(x, y , size, color);
+              node.nodeclicked = false;
+              node.health = 100;
+              node.order = p_order;
+
+              node.onMouseDown = function(){
+                  console.log("clicked, clickorder:" + clickorder + " this.order:" + this.order + " nodeclicked: " + this.nodeclicked + " updateSpeed:" + updateSpeed);
+                  if(this.nodeclicked == false && (computerpower > 9)
+                      && (this.order == clickorder || this.order ==  100)) {
+                      this.setBaseColor('#A43234');
+
+                      computerpower -= 10;
+                      updateSpeed-=3;
+
+                      if(this.order < 100){
+                          clickorder+=1;
+                          console.log(clickorder);
+                      }
+                      }
+              }
+              return node;
+            }
+
+
+            //origin node
+            nodes[0] = new Node(300,80, 30, '#7BBC9B'); //green
+            nodes[0].onMouseDown = function(){
+                addingPower = true;
+                this.selectOn();
+            }
+
+            //#ff8a38 orange
+
+            nodes[1] = makeNode(500, 80, 30, '#e8e8e8',100);//top right
+            nodes[2] = makeNode(300,240, 30, '#e8e8e8',2);//below the green node
+            nodes[3] = makeNode(700,240, 30, '#e8e8e8',3);//below top right
+            nodes[4] = makeNode(700,540, 30, '#e8e8e8',4);//below the node below top right
+
+            // final node
+            node5order = 5;
+            nodes[5] = new Node(300,540, 30, '#ff423f'); 
+            nodes[5].nodeclicked = false;
+            nodes[5].onMouseDown = function(){
+              if(clickorder == node5order){
+                  if(computerpower > 49 && nodes[5].nodeclicked == false){
+                      computerpower = computerpower -= 50;
+                      nodes[5].nodeclicked = true;
+            }}}
+
+
+            connectNodes(0, 1);
+            connectNodes(0, 2);
+            connectNodes(2, 3);
+            connectNodes(3, 4);
+            connectNodes(4, 5);
+
+
+            // Make the score box
+            var box = new Path();
+            box.add(new Point(200, 50));
+            box.add(new Point(20, 50));
+            box.add(new Point(20, 140));
+            box.add(new Point(200, 140));
+            box.add(new Point(200, 50));
+            box.strokeWidth = 5;
+            box.strokeColor = '#00ff26';
+
+            // Make the score
+            var text = new PointText(new Point(30, 110));
+            text.fillColor = '#00ff26';
+            text.scale(4);
+            text.content = "0";
+
+            view.onFrame = function(event) {
+                // event.count is the number of times the frame event was fired
+                if(event.count % updateSpeed == 0) {
+                  if(addingPower) {
+                      computerpower += rate; 
+                      text.content = computerpower;
+                    }
+                }
+            }
+
+            // Draw the view now:
+            view.draw();
+
+        };
+    </script>
+</head>
+
+<body>
+<canvas id="myCanvas" resize></canvas>
+</body>
+</html>
