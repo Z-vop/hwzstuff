@@ -71,10 +71,13 @@
 
             // These are not working right yet
             nodes[4].mouseTarget.onMouseEnter = function (event) {
-                setDamage(this, 1);
+                console.log(event);
+                var node = event.target.parent;
+                node.targetOn();
             };
             nodes[4].mouseTarget.onMouseLeave = function (event) {
-                setDamage(this, 0);
+                var node = event.target.parent;
+                node.targetOff();
             };
         };
     </script>
