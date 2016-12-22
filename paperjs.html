@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 <!-- Load the Paper.js library -->
 <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
@@ -9,7 +9,8 @@
 <script type="text/javascript">
 	$(document).ready(
 		function(){
-
+			$('#triangle').hide();
+			$('#redwifi').hide();
 			$('#bluewifi').hide();
 			$('#firewall').hide();
 			$('#digicoin').hide();
@@ -31,6 +32,7 @@
 	var raster = new Raster('greenwifi');
 	raster.position.x = 300;
 	raster.position.y = 80;
+	var addrastertime = 0;
 
 	var path = new Path();
 	path.sendToBack();
@@ -39,33 +41,126 @@
 	path.strokeWidth = 5;
 	path.strokeColor = '#00ff26';
 
-	var addBlueRaster = function(){
+	var path2 = new Path();
+	path2.sendToBack();
+	path2.add(new Point(raster.position.x, raster.position.y));
+	path2.add(new Point(raster.position.x, raster.position.y));
+	path2.strokeWidth = 5;
+ 	path2.strokeColor = '#00ff26';
+
+ 	
+
+	var addRaster = function(){
+	   
 	   var blue = new Raster('bluewifi');
-		blue.position.x = raster.position.x+40;
+		blue.position.x = raster.position.x+200;
 		blue.position.y = raster.position.y;
-	}
+		blue.onMouseDown = function(event){
+
+		
+		var redwifi = new Raster('redwifi');
+		redwifi.position.x = raster.position.x+200;
+		redwifi.position.y = raster.position.y;
+
+      path.newX = 600;
+	   path.moveX = 3;
+	   path.moveY = 0;
+		path.on('frame', moveSegmentX);
+
+		}
+      
+		var blue2 = new Raster('bluewifi');
+		blue2.position.x = raster.position.x+200;
+		blue2.position.y = raster.position.y+100;
+		blue2.onMouseDown = function(event){
+      
+      var redwifi2 = new Raster('redwifi');
+		redwifi2.position.x = blue2.position.x;
+		redwifi2.position.y = blue2.position.y;
+
+
+
+
+     $('#hourglass').animate({height: 480},20000);
+
+      
+      path2.add(new Point(blue3.position.x, blue3.position.y));
+
+
+		}
+	
+
+		//end slash
+		}
+ 
+
+
+   var makepoint = function(x,y,newx,newy){
+
+   var newpath = new Path();
+	newpath.sendToBack();
+	newpath.add(new Point(500,400));
+	newpath.add(new Point(500,400));
+	newpath.strokeWidth = 5;
+	newpath.strokeColor = '#00ff26';
+   
+   if(newpath.position.x < 800){newpath.position.x += 3; console.log('hey');}
+   if(newpath.position.y < 400){newpath.position.y += 3}
+
+
+   }
 
    //This function will increment the X coordinate of the second segment in a path to its newX property
 	var moveSegmentX = function() {
-		var segment = this.segments[1]; // gets the second segment of the path
+		var segment = this.segments[1];
+		// gets the second segment of the path
 		if(segment.point.x <= this.newX) { // newX is the desired X coordinate
-			segment.point.x += 3;
+			segment.point.x += this.moveX;
+			segment.point.y += this.moveY;
 		} else {
 			this.off('frame', moveSegmentX); // This removes the event handler since we are done
-			addBlueRaster();
+			if(addrastertime == 0){addRaster();addrastertime += 1}
 		}
-    }
 
-	raster.onMouseDown = function(event){
+	}
+
+
+
+		
+
+
+	raster.onMouseDown = function(){
 	   path.newX = 470;
+	   path.moveX = 3;
+	   path.moveY = 0;
 		path.on('frame', moveSegmentX);
+
+		path2.newX = 470;
+	   path2.moveX = 3;
+	   path2.moveY = 2;
+		path2.on('frame', moveSegmentX);
 	}
 </script>
 
 </head>
 
 
-<body>
+<body bgcolor="black">
+    
+    <div id="scoreboard" style="width:180px;height:500px;position:absolute;left:0px;background-color:black;border:6px solid #00ff26;">
+      <div style="height:500px;width:5px;background-color:#00ff26;left:47px;position:absolute"></div>
+      <div id="hourglass" style="width:25px;height:100px;position:absolute;left:10px;top:10px;background-color:#ff0000;border-radius: 5px;"></div>
+     
+      </div>
+
+      <div id="scoreboard" style="width:500px;height:150px;position:absolute;top:700px;background-color:black;left:400px;border:6px solid #00ff26;">
+      <div style="position:absolute;width:5px;height:150px;left:120px;background-color:#00ff26"></div>
+      <div style="position:absolute;width:5px;height:150px;left:380px;background-color:#00ff26"></div>
+     
+      </div>
+      
+   <img id="triangle" src="desktop/triangle.png">
+   <img id="redwifi" src="images/redwifi.png">
    <img id="digicoin" src="images/digicoinmedium.png">
    <img id="bluewifi" src="images/bluewifi.png">
    <img id="firewall" src="images/firewall.png">

@@ -1,4 +1,4 @@
-// ## Drawing Functions ## //
+// ## Hacknode Drawing Functions ## //
 paper.install(window);
 window.nodes = [];
 
