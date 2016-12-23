@@ -36,29 +36,32 @@
             var gameover = false;
             var updateSpeed = 20;       // How fast the power is updated
             var rate = 1;               // How much power to add each update
-            var clickorder = 2;         // The next node that can be clicked
-            
+            var clickables = new Array(1,2);  // The next node that can be clicked
+            var nodesunited = new Array();
 
-            function makeNode(x,y,size,color,p_order) {
+            function makeNode(x,y,size,color,id) {
               var node = new Node(x, y , size, color);
               node.nodeclicked = false;
+              node.order = id;
               node.health = 100;
-              node.order = p_order;
+              // red color #A43234
+              node.onMouseDown = function(event){
+                  // console.log(event);
+                  // console.log("clicked, clickorder:" + clickorder + " this.order:" + this.order + " nodeclicked: " + this.nodeclicked + " updateSpeed:" + updateSpeed);
 
-              node.onMouseDown = function(){
-                  console.log("clicked, clickorder:" + clickorder + " this.order:" + this.order + " nodeclicked: " + this.nodeclicked + " updateSpeed:" + updateSpeed);
-                  if(this.nodeclicked == false && (computerpower > 9)
-                      && (this.order == clickorder || this.order ==  100)) {
-                      this.setBaseColor('#A43234');
-
+                  if( (clickables.includes(this.order)) && (computerpower > 9) ){
+                      this.setBaseColor('#4286f4');
+                      
+                      for (n in nodesunited){
+                        if (n.includes(this.order)){console.log("order:" + this.order)}
+                      }
+                     
                       computerpower -= 10;
                       updateSpeed-=3;
+                      this.nodeclicked = true;
 
-                      if(this.order < 100){
-                          clickorder+=1;
-                          console.log(clickorder);
-                      }
-                      }
+                     
+                  };
               }
               return node;
             }
@@ -66,14 +69,14 @@
 
             //origin node
             nodes[0] = new Node(300,80, 30, '#7BBC9B'); //green
-            nodes[0].onMouseDown = function(){
+            nodes[0].onMouseDown = function() {
                 addingPower = true;
                 this.selectOn();
             }
 
             //#ff8a38 orange
 
-            nodes[1] = makeNode(500, 80, 30, '#e8e8e8',100);//top right
+            nodes[1] = makeNode(500, 80, 30, '#e8e8e8',1);//top right
             nodes[2] = makeNode(300,240, 30, '#e8e8e8',2);//below the green node
             nodes[3] = makeNode(700,240, 30, '#e8e8e8',3);//below top right
             nodes[4] = makeNode(700,540, 30, '#e8e8e8',4);//below the node below top right
@@ -87,6 +90,8 @@
                   if(computerpower > 49 && nodes[5].nodeclicked == false){
                       computerpower = computerpower -= 50;
                       nodes[5].nodeclicked = true;
+                      nodes[5].setBaseColor('#4286f4');
+
             }}}
 
 
@@ -106,6 +111,13 @@
             box.add(new Point(200, 50));
             box.strokeWidth = 5;
             box.strokeColor = '#00ff26';
+             
+            //make the line that seperates the gameplay from the status
+            var seperate = new Path();
+            seperate.add(new Point(220, 0));
+            seperate.add(new Point(220, 1200));
+            seperate.strokeWidth = 5;
+            seperate.strokeColor = '#00ff26';
 
             // Make the score
             var text = new PointText(new Point(30, 110));
@@ -119,12 +131,27 @@
                   if(addingPower) {
                       computerpower += rate; 
                       text.content = computerpower;
+                      //console.log(nodesunited);
                     }
                 }
             }
 
             // Draw the view now:
             view.draw();
+ 
+            function connectNodes(n1, n2) {
+            var path = new Path();
+            path.sendToBack();
+            path.add(nodes[n1].position);
+            path.add(nodes[n2].position);
+            path.strokeWidth = 10;
+            path.strokeColor = '#154811';
+            var pairs = (n1, n2);
+            nodesunited.push(pairs);
+            }
+
+
+
 
         };
     </script>
