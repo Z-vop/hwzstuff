@@ -4,12 +4,15 @@ window.nodes = [];
 
 
 function Node(x, y, r, c) {
+    this.connections = [];
+
+
     var w = 15; // border width
 
     var outerNode = new Path.Circle({
         center: new Point(x, y),
         radius: r + w,
-        fillColor: new Color(c),
+        fillColor: c,
         shadowColor: c,
         shadowBlur: 80,
         shadowOffset: new Point(0, 0)
@@ -41,7 +44,7 @@ function Node(x, y, r, c) {
         fillColor: new Color(1, 0.001)
     });
 
-    this.name = "Node at " + x + "," + y + " with color " + c;
+    
     Group.call(this, [outerNode, innerNode, arcNode, this.mouseTarget]);
 
     var r = this.bounds.width / 2; // radius
@@ -58,6 +61,26 @@ function Node(x, y, r, c) {
     });
     this.selectNode.visible = false;
 
+    // Make the target circle and hide it
+    var r = this.bounds.width / 2 + 10; // radius
+    this.targetCircle = new Path.Circle({
+        center: new Point(this.position.x, this.position.y),
+        radius: r,
+        strokeColor: 'orange',
+        strokeWidth: 3,
+        shadowColor: 'orange',
+        shadowBlur: 40,
+        shadowOffset: new Point(0, 0)
+    });
+    this.targetCircle.visible = false;
+
+    // set properties 
+    this.health = 100;
+    this.name = "Node at " + x + "," + y + " with color " + c;
+
+    this.damageText = new PointText(new Point(this.position.x, this.position.y));
+    this.damageText.fillColor = 'white';
+    this.damageText.content = this.health;
 }
 
 Node.prototype = Object.create(Group.prototype);
@@ -96,32 +119,33 @@ Node.prototype.selectOff = function() {
 Node.prototype.isSelected = function() {
     return this.selectNode.visible;
 }
-
-function connectNodes(n1, n2) {
-    var path = new Path();
-    path.sendToBack();
-    path.add(nodes[n1].position);
-    path.add(nodes[n2].position);
-    path.strokeWidth = 10;
-    path.strokeColor = '#154811';
+Node.prototype.targetOn = function() {
+    this.targetCircle.visible = true;
+};
+Node.prototype.targetOff = function() {
+    this.targetCircle.visible = false;
+};
+Node.prototype.isTargeted = function() {
+    return this.targetCircle.visible;
+}
+Node.prototype.setHealth = function(amount) {
+    this.health = amount;
+    this.damageText.content = this.health;
 }
 
 
-// TODO: This is not working yet.
-function setDamage(node, amount) {
-    var r = node.bounds.width / 2 + 10; // radius
-
-    var n = new Path.Circle({
-        center: new Point(node.position.x, node.position.y),
-        radius: r,
-        strokeColor: 'red',
-        strokeWidth: 3,
-        shadowColor: 'red',
-        shadowBlur: 40,
-        shadowOffset: new Point(0, 0)
-    });
-    node.damage = amount;
+// Does this node's connections include the node with id number n?
+// usage: node.isConnected(2);
+Node.prototype.isConnected = function(n) {
+    return this.connections.includes(n);
 }
+
+// ### Standalone functions
+// TODO: Make these class methods of Node
+
+// Connect two nodes in nodes[] with the index numbers n1 and n2
+
+
 
 // Draws the half circle
 function createArc(x, y, r, c) {
