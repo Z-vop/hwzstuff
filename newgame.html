@@ -23,178 +23,185 @@
   <script type="text/javascript">
     paper.install(window);
 
-        // Only executed our code once the DOM is ready.
-        window.onload = function() {
-            // Get a reference to the canvas object
-            var canvas = document.getElementById('myCanvas');
-            // Create an empty project and a view for the canvas:
-            paper.setup(canvas);
+    // Only executed our code once the DOM is ready.
+    window.onload = function() {
+        // Get a reference to the canvas object
+        var canvas = document.getElementById('myCanvas');
+        // Create an empty project and a view for the canvas:
+        paper.setup(canvas);
 
-            // Global Game State
-            var addingPower = false;    // We are giving power to the user
-            var computerpower = 0;      // How much power the user has
-            var gameover = false;
-            var updateSpeed = 60;       // How fast the power is updated
-            var rate = 1;               // How much power to add each update
-            var clickables = new Array(1,2);  // The next node that can be clicked
-            var nodesunited = new Array();
-            var AIupdateSpeed = 60;
+        // Global Game State
+        var addingPower = false;    // We are giving power to the user
+        var computerpower = 0;      // How much power the user has
+        var gameover = false;
+        var updateSpeed = 60;       // How fast the power is updated
+        var rate = 1;               // How much power to add each update
+        var clickables = new Array(1,2);  // The next node that can be clicked
+        var nodesunited = new Array();
+        var AIupdateSpeed = 60;
 
 
 
-            function makeNode(x,y,size,color,id) {
-              var node = new Node(x, y , size, color);
-              node.nodeclicked = false;
-              node.order = id;
-              node.owned = false;
-              // red color #A43234
-              node.onMouseDown = function(event){
-                // console.log("clicked, clickorder:" + clickorder + " this.order:" + this.order + " nodeclicked: " + this.nodeclicked + " updateSpeed:" + updateSpeed);
-
-                if(this.owned == true){
-                    if(this.isSelected()){this.selectOff();}else{this.selectOn();}
-                } else {
-                  // Is this node connected to one* of the selected nodes? 
-                  // * Note that we could have selected more than one node.
-                  // If true, turn on the target ring
-                  for (var i = 0; i < nodes.length; i++){
-                    if(nodes[i].isSelected()) {
-                      console.log("selected");
-                      for(var a = 0; a < nodes.length; a++){
-                        if(nodes[a].owned == true){
-                          if(this.isConnected(nodes[a].id)) {
-                            if(this.isTargeted()){null}else{this.targetOn();}
-                          }}}
+        function makeNode(x,y,size,color) {
+          var node = new Node(x, y , size, color);
+          
+          node.onMouseDown = function(event){
+            // a user has clicked on a node
+            if(this.isOwned()){
+              // if this is a node we own, allow selection or deselection
+              if(this.isSelected()){this.selectOff();}else{this.selectOn();}
+            } else {
+              // otherwise, check the node's connections:
+              for(var i = 0; i < this.connectedNodes.length; i++) {
+                // if this node is connected to a selected (attack) node
+                if(this.connectedNodes[i].isSelected()) {
+                  // then we want to enable this node as a target
+                  var aSelectedNode = this.connectedNodes[i];
+                  // TODO: We set the target color for every attacking node
+                  this.setBaseColor('orange');
+                  // find the connecting line
+                  for (n=0; n < lines.length; n++) {
+                    if((lines[n].node1 == this) || (lines[n].node2 == this)) {
+                      // we have a line that connects to the click node
+                      // does the other side of the line connect to a selected node?
+                      if((lines[n].node1 == aSelectedNode) || 
+                        (lines[n].node2 == aSelectedNode)) {
+                        // set the line color and set the line .isAnAttack property
+                        lines[n].isAnAttack = true;
+                        lines[n].strokeColor = 'orange';
+                      }
                     }
-                  } 
-              
-                }
-              } // end onMouseDown
-              return node;
-            } // end MakeNode
-
-
-            //origin node
-            nodes[0] = makeNode(300,80, 30, '#4286f4',0); //green
-            nodes[0].owned = true;
-
-            nodes[1] = makeNode(500, 80, 30, '#e8e8e8',1);//top right
-            nodes[2] = makeNode(400,240, 30, '#e8e8e8',2);//below the green node
-            nodes[3] = makeNode(700,240, 30, '#e8e8e8',3);//below top right
-            nodes[4] = makeNode(700,540, 30, '#e8e8e8',4);//below the node below top right
-
-            // final node
-            nodes[5] = makeNode(1000, 540, 30, '#ff2d34', 5);
-              
-            lines.push(connectNodes(0, 1));
-            lines.push(connectNodes(0, 2));
-            lines.push(connectNodes(1, 3));
-            lines.push(connectNodes(2, 3));
-            lines.push(connectNodes(2, 4));
-            lines.push(connectNodes(3, 4));
-            lines.push(connectNodes(4, 5));
-            console.log(lines);
-
-            // for (var i = 0; i < nodes.length; i++) {
-            //   console.log("node[" + i + "] id:" + nodes[i].id + " Connections " + nodes[i].connections);
-            // }
-
-            // Make the score box
-            var box = new Path();
-            box.add(new Point(200, 50));
-            box.add(new Point(20, 50));
-            box.add(new Point(20, 140));
-            box.add(new Point(200, 140));
-            box.add(new Point(200, 50));
-            box.strokeWidth = 5;
-            box.strokeColor = '#00ff26';
-
-            //make the line that seperates the gameplay from the status
-            var seperate = new Path();
-            seperate.add(new Point(220, 0));
-            seperate.add(new Point(220, 1200));
-            seperate.strokeWidth = 5;
-            seperate.strokeColor = '#00ff26';
-
-            // Make the score
-            var text = new PointText(new Point(30, 110));
-            text.fillColor = '#00ff26';
-            text.scale(4);
-            text.content = "0";
-
-
-            //#ff5157
-            //#ff423f
-            view.onFrame = function(event) {
-                // event.count is the number of times the frame event was fired
-                if(event.count % updateSpeed == 0) {
-                  var attackers = 0;
-                  var targets = 0;
-
-                  for (var n=0;n < nodes.length; n++){
-                    // Add up the power of all our attacking nodes
-                    if(nodes[n].isSelected()){ attackers++; }
-                    // Add up the number of targeted nodes
-                    if(nodes[n].isTargeted()){ targets++; }
                   }
+                  aSelectedNode.selectOff();
+                } //end if
+              } // end for (each connected node)
+            } // end else (potential attack target)
+          } // end onMouseDown
+          return node;
+        } // end MakeNode
 
-                  for (var i = 0; i < nodes.length; i++) {
-                    if(nodes[i].isTargeted()) {
-                      nodes[i].setBaseColor('orange');
-                      //this is where you need to make it so depending on which owned nodes are selected determines how fast the node you are trying to capture will be captured
-                      var factor = Math.pow(0.80, (attackers-1));
-                      nodes[i].setHealth(nodes[i].health-(((attackers*10)*factor)/targets));  
-                    }
 
-                    // Check health 
-                    if(nodes[i].health <= 0) { 
-                      nodes[i].targetOff();
-                      nodes[i].setBaseColor('#4286f4');
-                      nodes[i].owned = true;
-                    }
-                  } // end for
-                }
-            } //end onFrame
+        //origin node
+        nodes[0] = makeNode(300,80, 30, '#4286f4');
+        nodes[0].setOwned(true);
 
-            // Draw the view now:
-            view.draw();
-            
-            // Connect the two nodes nodes[n1] and nodes[n2]
-            function connectNodes(n1, n2) {
-              var path = new Path();
-              
-              path.sendToBack();
-              path.add(nodes[n1].position);
-              path.add(nodes[n2].position);
-              path.strokeWidth = 10;
-              path.strokeColor = '#154811';
-              nodes[n1].connections.push(nodes[n2].id);
-              nodes[n2].connections.push(nodes[n1].id);
+        nodes[1] = makeNode(500, 80, 30, '#e8e8e8');//top right
+        nodes[2] = makeNode(400,240, 30, '#e8e8e8');//below the green node
+        nodes[3] = makeNode(700,240, 30, '#e8e8e8');//below top right
+        nodes[4] = makeNode(700,540, 30, '#e8e8e8');//below the node below top right
 
-              path.isAnAttack = false;
-              path.node1 = nodes[n1].id;
-              path.node2 = nodes[n2].id;
+        // final node
+        nodes[5] = makeNode(1000, 540, 30, '#ff2d34');
+          
+        lines.push(connectNodes(0, 1));
+        lines.push(connectNodes(0, 2));
+        lines.push(connectNodes(1, 3));
+        lines.push(connectNodes(2, 3));
+        lines.push(connectNodes(2, 4));
+        lines.push(connectNodes(3, 4));
+        lines.push(connectNodes(4, 5));
 
-              return path;
+        console.log(lines);
+
+        // Make the score box
+        var box = new Path();
+        box.add(new Point(200, 50));
+        box.add(new Point(20, 50));
+        box.add(new Point(20, 140));
+        box.add(new Point(200, 140));
+        box.add(new Point(200, 50));
+        box.strokeWidth = 5;
+        box.strokeColor = '#00ff26';
+
+        //make the line that seperates the gameplay from the status
+        var seperate = new Path();
+        seperate.add(new Point(220, 0));
+        seperate.add(new Point(220, 1200));
+        seperate.strokeWidth = 5;
+        seperate.strokeColor = '#00ff26';
+
+        // Make the score
+        var text = new PointText(new Point(30, 110));
+        text.fillColor = '#00ff26';
+        text.scale(4);
+        text.content = "0";
+
+
+        //#ff5157
+        //#ff423f
+        view.onFrame = function(event) {
+            // event.count is the number of times the frame event was fired
+            if(event.count % updateSpeed == 0) {
+
+              for (var n=0;n < lines.length; n++){              // for each line
+                if(lines[n].isAnAttack) {                       // Is this an attack vector?
+                  targetNode = getTargetNodeFromLine(lines[n]);  // Get the targeting node
+                  // If the health of the node begin attacked has gone below zero
+                  if(targetNode.health <= 0){
+                    // Set the line back to normal
+                    lines[n].isAnAttack = false;
+                    lines[n].strokeColor = '#154811';           // Normal line color
+                    // Set the target to an owned node
+                    targetNode.setOwned(true);
+                  } else {
+                    targetNode.setHealth(targetNode.health - 10);
+                  }
+                } // end if (an attack)
+              } // end for 
+            } // end if
+        } //end onFrame
+
+        // Draw the view now:
+        view.draw();
+        
+        // Connect the two nodes nodes[n1] and nodes[n2]
+        function connectNodes(n1, n2) {
+          // TODO: Need to make lines an object type
+          var line = new Path();
+          
+          line.name = "Line";
+          line.sendToBack();
+          line.add(nodes[n1].position);
+          line.add(nodes[n2].position);
+          line.strokeWidth = 10;
+          line.strokeColor = '#154811';
+          nodes[n1].connectedNodes.push(nodes[n2]);
+          nodes[n2].connectedNodes.push(nodes[n1]);
+
+          line.isAnAttack = false;
+          line.node1 = nodes[n1];
+          line.node2 = nodes[n2];
+
+          return line;
+        }
+
+        // Return the target (unowned) node given a line object
+        function getTargetNodeFromLine(obj) {
+          if(obj.name != "Line") { throw "Object is not a line."}
+
+          if(obj.node1.isOwned()) { return obj.node2; }
+          if(obj.node2.isOwned()) { return obj.node1; }
+
+          throw "Nether end of line is owned.";
+        }
+
+        // Return a node object given the id
+        // Usage:
+        // try {
+        //   node = getNodeByID(17);
+        // } catch(e) {
+        //   console.log(e);
+        // }
+        function getNodeByID(n1){
+          for (var i=0; i < nodes.length; i++){
+            if(nodes[i].id == n1){
+             return nodes[i];
             }
-
-            // Return a node object given the id
-            // Usage:
-            // try {
-            //   node = getNodeByID(17);
-            // } catch(e) {
-            //   console.log(e);
-            // }
-            function getNodeByID(n1){
-              for (var i=0; i < nodes.length; i++){
-                if(nodes[i].id == n1){
-                 return nodes[i];
-                }
-              }
-              throw "No node with that ID found";
-            }
-        };  //end OnLoad
-    </script>
+          }
+          throw "No node with that ID found";
+        }
+    };  //end OnLoad
+  </script>
 </head>
 
 <body>

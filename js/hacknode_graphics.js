@@ -4,10 +4,11 @@ window.nodes = [];
 window.lines = [];
 
 function Node(x, y, r, c) {
-    this.connections = [];
     this.health = 100;
     this.name = "Node at " + x + "," + y + " with color " + c;
-
+    this.connectedNodes = [];
+    
+    this.owned = false;
     var w = 15; // border width
 
     var outerNode = new Path.Circle({
@@ -88,6 +89,16 @@ function Node(x, y, r, c) {
 
 Node.prototype = Object.create(Group.prototype);
 Node.prototype.constructor = Group;
+
+Node.prototype.setOwned = function(_owned) {
+    this.owned = _owned;
+    if(this.owned) {
+        this.setBaseColor('#4286f4');         // Blue
+    }
+}
+Node.prototype.isOwned = function() {
+    return this.owned;
+}
 
 // Change this node's hue. Hue is from 0 to 360.
 Node.prototype.setHue = function(h) {
