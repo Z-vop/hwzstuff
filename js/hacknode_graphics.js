@@ -1,11 +1,12 @@
 // ## Hacknode Drawing Functions ## //
 paper.install(window);
 window.nodes = [];
-
+window.lines = [];
 
 function Node(x, y, r, c) {
     this.connections = [];
-
+    this.health = 100;
+    this.name = "Node at " + x + "," + y + " with color " + c;
 
     var w = 15; // border width
 
@@ -37,6 +38,15 @@ function Node(x, y, r, c) {
 
     var arcNode = createArc(x, y, r + w, c);
 
+    // Make the damage indicator (text)
+    this.damageText = new PointText(new Point(x, y+10));
+    this.damageText.fontFamily = "Gill Sans";
+    this.damageText.fontSize = 24;
+    this.damageText.justification = 'center';
+    this.damageText.fillColor = 'white';
+    this.damageText.opacity = 0.5;
+    this.damageText.content = this.health;
+
     // Make a transparent circle over the node as a consistent target for mouse events
     this.mouseTarget = new Path.Circle({
         center: new Point(x, y),
@@ -44,8 +54,7 @@ function Node(x, y, r, c) {
         fillColor: new Color(1, 0.001)
     });
 
-    
-    Group.call(this, [outerNode, innerNode, arcNode, this.mouseTarget]);
+    Group.call(this, [outerNode, innerNode, arcNode, this.damageText, this.mouseTarget]);
 
     var r = this.bounds.width / 2; // radius
 
@@ -74,13 +83,7 @@ function Node(x, y, r, c) {
     });
     this.targetCircle.visible = false;
 
-    // set properties 
-    this.health = 100;
-    this.name = "Node at " + x + "," + y + " with color " + c;
 
-    this.damageText = new PointText(new Point(this.position.x, this.position.y));
-    this.damageText.fillColor = 'white';
-    this.damageText.content = this.health;
 }
 
 Node.prototype = Object.create(Group.prototype);
@@ -141,7 +144,6 @@ Node.prototype.isConnected = function(n) {
 }
 
 // ### Standalone functions
-// TODO: Make these class methods of Node
 
 // Connect two nodes in nodes[] with the index numbers n1 and n2
 

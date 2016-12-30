@@ -2,26 +2,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+  <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
 
-    <style>
-        html,
-        body {
-            margin: 0;
-            overflow: hidden;
-            height: 100%;
-            background: black;
-        }
-        canvas[resize]{
-            width:100%;
-            height:100%;
-        }
-    </style>
+  <style>
+    html,
+    body {
+      margin: 0;
+      overflow: hidden;
+      height: 100%;
+      background: black;
+    }
+    canvas[resize]{
+      width:100%;
+      height:100%;
+    }
+  </style>
 
-    <script type="text/javascript" src="js/hacknode_graphics.js"></script>
+  <script type="text/javascript" src="js/hacknode_graphics.js"></script>
 
-    <script type="text/javascript">
-        paper.install(window);
+  <script type="text/javascript">
+    paper.install(window);
 
         // Only executed our code once the DOM is ready.
         window.onload = function() {
@@ -49,41 +49,29 @@
               node.owned = false;
               // red color #A43234
               node.onMouseDown = function(event){
-                // console.log(event);
                 // console.log("clicked, clickorder:" + clickorder + " this.order:" + this.order + " nodeclicked: " + this.nodeclicked + " updateSpeed:" + updateSpeed);
-               
-                //this.setHealth(this.health - 10);
 
                 if(this.owned == true){
-                    
-                    // for (n in nodesunited){
-                    //   if (n.includes(this.order)){console.log("order:" + this.order)}
-                    // }
                     if(this.isSelected()){this.selectOff();}else{this.selectOn();}
-
                 } else {
                   // Is this node connected to one* of the selected nodes? 
                   // * Note that we could have selected more than one node.
                   // If true, turn on the target ring
-                 
-
-
-
-
                   for (var i = 0; i < nodes.length; i++){
                     if(nodes[i].isSelected()) {
                       console.log("selected");
                       for(var a = 0; a < nodes.length; a++){
-                      if(nodes[a].owned == true){
-                      if(this.isConnected(nodes[a].id)) {
-                        if(this.isTargeted()){null}else{this.targetOn();}
-                      }}}
+                        if(nodes[a].owned == true){
+                          if(this.isConnected(nodes[a].id)) {
+                            if(this.isTargeted()){null}else{this.targetOn();}
+                          }}}
                     }
-                  }
-                } // end if
+                  } 
+              
+                }
               } // end onMouseDown
               return node;
-            }
+            } // end MakeNode
 
 
             //origin node
@@ -97,20 +85,19 @@
 
             // final node
             nodes[5] = makeNode(1000, 540, 30, '#ff2d34', 5);
-            
-            
-            connectNodes(0, 1);
-            connectNodes(0, 2);
-            connectNodes(1, 3);
-            connectNodes(2, 3);
-            connectNodes(2, 4);
-            connectNodes(3, 4);
-            connectNodes(4, 5);
+              
+            lines.push(connectNodes(0, 1));
+            lines.push(connectNodes(0, 2));
+            lines.push(connectNodes(1, 3));
+            lines.push(connectNodes(2, 3));
+            lines.push(connectNodes(2, 4));
+            lines.push(connectNodes(3, 4));
+            lines.push(connectNodes(4, 5));
+            console.log(lines);
 
-            for (var i = 0; i < nodes.length; i++) {
-              console.log("node[" + i + "] id:" + nodes[i].id + " Connections " + nodes[i].connections);
-            }
-
+            // for (var i = 0; i < nodes.length; i++) {
+            //   console.log("node[" + i + "] id:" + nodes[i].id + " Connections " + nodes[i].connections);
+            // }
 
             // Make the score box
             var box = new Path();
@@ -121,124 +108,96 @@
             box.add(new Point(200, 50));
             box.strokeWidth = 5;
             box.strokeColor = '#00ff26';
-             
+
             //make the line that seperates the gameplay from the status
             var seperate = new Path();
             seperate.add(new Point(220, 0));
             seperate.add(new Point(220, 1200));
             seperate.strokeWidth = 5;
             seperate.strokeColor = '#00ff26';
-                                                           
+
             // Make the score
             var text = new PointText(new Point(30, 110));
             text.fillColor = '#00ff26';
             text.scale(4);
             text.content = "0";
+
+
             //#ff5157
             //#ff423f
             view.onFrame = function(event) {
-                if(event.count % AIupdateSpeed == 0){
-                  for (var i = 0; i < nodes.length; i++) {
-                    if(nodes[i].isTargeted()) {
-                      nodes[i].setBaseColor('orange');
-                      //this is where you need to make it so depending on which owned nodes are selected determines how fast the node you are trying to capture will be captured
-                      var rate = 0;
-                      var wholerate = rate * 10;
-                      var divert = 10;
-                      
-                      for (var z=0;z < nodes.length;z++){
-                        if(nodes[z].isTargeted()){
-                           divert-=1
-                        }
-                      }
-
-
-                      for (var n=0;n < nodes.length; n++){
-                        if(nodes[n].isSelected()){rate++}
-                          console.log("rate:" + rate);
-                          wholerate = (rate * divert);
-
-                      }
-
-                      nodes[i].setHealth(nodes[i].health - wholerate);
-                    }
-                    if(nodes[i].health <= 0) { 
-                      nodes[i].targetOff();
-                      nodes[i].setBaseColor('#4286f4');
-                      nodes[i].owned = true;
-                    }
-                    
-                  }
-
-
-
-                }
-
-                
-
                 // event.count is the number of times the frame event was fired
                 if(event.count % updateSpeed == 0) {
+                  var attackers = 0;
+                  var targets = 0;
+
+                  for (var n=0;n < nodes.length; n++){
+                    // Add up the power of all our attacking nodes
+                    if(nodes[n].isSelected()){ attackers++; }
+                    // Add up the number of targeted nodes
+                    if(nodes[n].isTargeted()){ targets++; }
+                  }
+
                   for (var i = 0; i < nodes.length; i++) {
                     if(nodes[i].isTargeted()) {
                       nodes[i].setBaseColor('orange');
                       //this is where you need to make it so depending on which owned nodes are selected determines how fast the node you are trying to capture will be captured
-                      var rate = 0;
-                      var wholerate = rate * 10;
-                      var divert = 10;
-                      
-                      for (var z=0;z < nodes.length;z++){
-                        if(nodes[z].isTargeted()){
-                           divert-=2
-                        }
-                      }
-
-
-                      for (var n=0;n < nodes.length; n++){
-                        if(nodes[n].isSelected()){rate++}
-                          console.log("rate:" + rate);
-                          wholerate = (rate * divert);
-
-                      }
-
-                      nodes[i].setHealth(nodes[i].health - wholerate);
+                      var factor = Math.pow(0.80, (attackers-1));
+                      nodes[i].setHealth(nodes[i].health-(((attackers*10)*factor)/targets));  
                     }
+
+                    // Check health 
                     if(nodes[i].health <= 0) { 
                       nodes[i].targetOff();
                       nodes[i].setBaseColor('#4286f4');
                       nodes[i].owned = true;
                     }
-                    
-                  }
+                  } // end for
                 }
-            }
+            } //end onFrame
 
             // Draw the view now:
             view.draw();
-
-            //Usage: node1.isConnected(node2.id)
- 
+            
             // Connect the two nodes nodes[n1] and nodes[n2]
             function connectNodes(n1, n2) {
-            var path = new Path();
+              var path = new Path();
+              
+              path.sendToBack();
+              path.add(nodes[n1].position);
+              path.add(nodes[n2].position);
+              path.strokeWidth = 10;
+              path.strokeColor = '#154811';
+              nodes[n1].connections.push(nodes[n2].id);
+              nodes[n2].connections.push(nodes[n1].id);
 
+              path.isAnAttack = false;
+              path.node1 = nodes[n1].id;
+              path.node2 = nodes[n2].id;
 
-            path.sendToBack();
-            path.add(nodes[n1].position);
-            path.add(nodes[n2].position);
-            path.strokeWidth = 10;
-            path.strokeColor = '#154811';
-            nodes[n1].connections.push(nodes[n2].id);
-            nodes[n2].connections.push(nodes[n1].id);
+              return path;
             }
 
-
-
-
-        };
+            // Return a node object given the id
+            // Usage:
+            // try {
+            //   node = getNodeByID(17);
+            // } catch(e) {
+            //   console.log(e);
+            // }
+            function getNodeByID(n1){
+              for (var i=0; i < nodes.length; i++){
+                if(nodes[i].id == n1){
+                 return nodes[i];
+                }
+              }
+              throw "No node with that ID found";
+            }
+        };  //end OnLoad
     </script>
 </head>
 
 <body>
-<canvas id="myCanvas" resize></canvas>
+  <canvas id="myCanvas" resize></canvas>
 </body>
 </html>
