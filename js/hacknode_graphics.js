@@ -2,6 +2,8 @@
 paper.install(window);
 window.nodes = [];
 window.lines = [];
+window.players = [];
+window.clickables = [];
 
 
 function Node(x, y, r, c) {
@@ -161,6 +163,10 @@ Node.prototype.constructor = Group;
 // usage: node.isConnected(2);
 Node.prototype.isConnected = function (n) {
     return this.connections.includes(n);
+}
+
+Node.prototype.isSelectable = function () {
+    return this.owned;
 }
 
 // ### Standalone functions

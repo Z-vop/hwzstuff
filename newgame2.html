@@ -42,6 +42,7 @@
           // TODO: eliminate makeNode
           function makeNode(x, y, size, color) {
               var node = new Node(x, y, size, color);
+              node.attacks = 0;
 
               node.onMouseDown = function (event) {
                   // a user has clicked on a node
@@ -101,19 +102,15 @@
 
           nodes[1] = makeNode(500, 80, 30, '#e8e8e8');//top right
           nodes[2] = makeNode(400, 240, 30, '#e8e8e8');//below the green node
-          nodes[3] = makeNode(700, 240, 30, '#e8e8e8');//below top right
-          nodes[4] = makeNode(700, 540, 30, '#e8e8e8');//below the node below top right
-
+          
           // final node
-          nodes[5] = makeNode(1000, 540, 30, '#ff2d34');
+          nodes[3] = makeNode(1000, 540, 30, '#ff2d34');
 
-          lines.push(connectNodes(0, 1, 10));
+          lines.push(connectNodes(0, 1, 20));
+          lines.push(connectNodes(1, 2, 20));
           lines.push(connectNodes(0, 2, 20));
-          lines.push(connectNodes(1, 3, 5));
-          lines.push(connectNodes(2, 3, 10));
-          lines.push(connectNodes(2, 4, 10));
-          lines.push(connectNodes(3, 4, 10));
-          lines.push(connectNodes(4, 5, 10));
+          lines.push(connectNodes(2, 3, 20));
+          
 
 
           // Make the score box
@@ -156,31 +153,44 @@
 
                           // Next we are going to calculate the power divide
                           var count = 0;
+                          
                           // find all lines...
                           for (i=0;i < lines.length;i++){
                             // where the attacking node is one of the endpoints
                             if ((lines[i].node1 == attackingNode) ||
                               (lines[i].node2 == attackingNode)) {
+                             
+                              attackingNode.attacks++;
+                              if(attackingNode.attacks == 1){
+                                attackingNode.isSelectable = false;
+                              }
+
                               // count the number of lines that are currently attacking
                               if(lines[i].isAnAttack){
                                 count++;
+                                
                               }
+
                             }
+
                           } // end for (each line)
                           console.log(count);
                           
                           // If the health of the node begin attacked has gone below zero
                           if (targetNode.health <= 0) {
+                              //set the amount of how many nodes the attacking node is attacking back to 0
+                              attackingNode.attacks--;
                               // Set the line back to normal
                               lines[n].isAnAttack = false;
+                              lines[n].strokeColor = '#aa02ff'
 
-                              if (lines[n].rate == 20) {
-                               lines[n].strokeColor = '#aa02ff'
-                              } else if (lines[n].rate == 15) {
-                                lines[n].strokeColor = '#02fffa'
-                              } else {
-                               lines[n].strokeColor = '#0213ff'
-                              }
+                              // if (lines[n].rate == 20) {
+                              //  lines[n].strokeColor = '#aa02ff'
+                              // } else if (lines[n].rate == 15) {
+                              //   lines[n].strokeColor = '#02fffa'
+                              // } else {
+                              //  lines[n].strokeColor = '#0213ff'
+                              // }
                             
                               // Set the target to an owned node
                               targetNode.owned = true;
