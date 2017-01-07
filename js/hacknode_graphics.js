@@ -172,3 +172,18 @@ Node.prototype.isSelectable = function () {
 // ### Standalone functions
 
 
+function connectNodes(node1, node2) {
+    // TODO: Need to make lines an object type
+    var line = new Path();
+    line.sendToBack();
+    line.add(node1.position);
+    line.add(node2.position);
+    line.strokeWidth = 10;
+    line.strokeColor = '#156011';
+    line.isAnAttack = false;
+    line.node1 = node1;
+    line.node2 = node2;
+    return line;
+}
+
+
