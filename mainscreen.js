@@ -30,10 +30,6 @@ socket.on('connection', function(){console.log('connected');}
 //}
 
 
-function startgp(){
-    //window.location.href = 'newgame2.html';
-    console.log('hi');
-}
 
 
 

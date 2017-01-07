@@ -2,7 +2,9 @@
 <html>
 
 <head>
-<script src="loginscreen.js"></script>
+<!--<script src="Dev/hwzstuff/loginscreen.js"></script>-->
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 </head>
 
 <body style="background-color:black">
@@ -20,7 +22,6 @@
 
 
 
-<input type="image" src="animationwifiBlue.gif" style="width:200px;height:200px" id="wifi" onclick="changeWifi();"/>
 
 
 </div>
@@ -35,13 +36,11 @@
 <div id="sidemenu">
 
 
-<button class="sidemenu_theme" id="digicoins"  onclick="DigiCoinRedirect">DigiCoins</button>
-
-
+<button class="sidemenu_theme" id="digicoins"  onclick="DigiCoinRedirect()">DigiCoins</button>
 <br>
 <br>
 
-<button class="sidemenu_theme" id="startgame">Start Game</button>
+<button class="sidemenu_theme" id="startgame" onclick="startgp()">Start Game</button>
 
 <br>
 <br>
@@ -63,8 +62,6 @@
 
 <button class="sidemenu_theme" id="help" >help</button>
 
-
-
 </div>
 
 
@@ -73,7 +70,6 @@
 <style>
 
 #title {position:static;}
-
 
 .sidemenu_theme{color: green;
 background-color: black;
@@ -84,9 +80,7 @@ outline-color:green;
 font-size:40px;
 width: 300px;
 height:100px;
-
 }
-
 
 .theme {color: green;
 background-color: black;
@@ -101,20 +95,18 @@ width:75px;
 
 
 <script>
+
 	function DigiCoinRedirect(){
-		window.location.href("digicoins.html");
+		console.log('hi');
 	}
 
-
+	function startgp(){
+		window.location.href = 'newgame2.html';
+		console.log('hi');
+	}
 
 </script>
 
-
-
-
-
-
-
 </body>
-
 </html>
+
