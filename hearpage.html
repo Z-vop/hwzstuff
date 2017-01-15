@@ -27,14 +27,32 @@
       var socket = io('http://localhost:7000');
 
       $('#loginForm').css("visibility: visible;");
-      $('#loginForm form').submit(function () {
-        socket.emit(
-            'message', 
-             '/user ' + $('#usernameinput').val() + " " + $('#passwordinput').val()
-        );
-        return false;
-        console.log('its working');
-      });
+
+
+      function clicker() {
+
+
+          if($('#passwordinput').val() == 'pass') {
+              $('#loginForm').hide();
+              //page2();
+
+              //$("button").hide();
+          }
+      };
+
+      function page2() {
+
+          $('#page2').show();
+
+          var value = 0;
+
+          setInterval(function () {
+              value++;
+              document.getElementById("pster").innerHTML = value;
+          }, 1000);
+
+      }
+      
 
       socket.on('error_message', function (msg) {
         $('#messages').append($('<p class="chat_error"></p>').text(msg));
@@ -50,6 +68,19 @@
       
       var nodes = new Map();
       var connections = new Map();
+      
+      $('#loginForm form').submit(function () {
+            $('#loginForm').css("visibility: invisible;");
+              socket.emit(
+                 'message', 
+                   '/user ' + $('#usernameinput').val() + " " + $('#passwordinput').val()
+              );
+              return false;
+            console.log('its working');
+          });
+
+
+      
       
 
 
@@ -128,7 +159,7 @@
         <input id="passwordinput">
         </div>
 
-        <button class="sidemenu_theme" type="button" id="loginbtn">login</button>
+        <button class="sidemenu_theme" type="button" id="loginbtn" onclick="clicker()">login</button>
     </form>
     <div id="messages" style="color:white;"></div>
 </div>

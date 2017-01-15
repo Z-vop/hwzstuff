@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+</head>
+<body>
+<div id="page1">
+    <p>This is page one.</p>
+    <form id="form1" action="">
+        Username: <input id="username" type="text" name="username"><br>
+        Password: <input id="password" type="text" name="password"><br>
+        <button id="btn" type="button" onclick='clicker()'>submit</button>
+    </form>
+
+</div>
+
+<div id="page2" style="visibility: hidden;">
+    <p>This is page two.</p>
+    <p>Counter: <span id="pster"></span></p>
+</div>
+
+<script>
+    function clicker() {
+
+//        if($('#password').val() == 'pass'){
+//              $('#page1').hidden(true);
+//        }
+
+
+
+        if($('#password').val() == 'pass') {
+            //document.getElementById('page1').hidden = true;
+             $('#page1').hide();
+             page2();
+
+            $("button").hide();
+        }
+
+
+    };
+
+    function page2() {
+        document.getElementById('page2').style.visibility = 'visible';
+        $('#page2').show();
+        var value = 0;
+        setInterval(function () {
+            value++;
+            document.getElementById("pster").innerHTML = value;
+        }, 1000);
+    }
+</script>
+</body>
+</html>
