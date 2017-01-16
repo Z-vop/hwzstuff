@@ -15,7 +15,6 @@
         Password: <input id="password" type="text" name="password"><br>
         <button id="btn" type="button" onclick='clicker()'>submit</button>
     </form>
-
 </div>
 
 <div id="page2" style="visibility: hidden;">
@@ -25,22 +24,11 @@
 
 <script>
     function clicker() {
-
-//        if($('#password').val() == 'pass'){
-//              $('#page1').hidden(true);
-//        }
-
-
-
         if($('#password').val() == 'pass') {
             //document.getElementById('page1').hidden = true;
              $('#page1').hide();
              page2();
-
-            $("button").hide();
         }
-
-
     };
 
     function page2() {
