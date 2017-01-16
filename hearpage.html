@@ -28,16 +28,24 @@
 
       $('#loginForm').css("visibility: visible;");
 
+      socket.on('error_message', function (msg) {
+          $('#messages').append($('<p class="chat_error"></p>').text(msg));
+      });
+
+
+      socket.on('message', function (msg) {
+          console.log("message: " + msg);
+          if(msg.startsWith("Login Successful"));
+            // take down login form
+              $('#loginForm').hide();
+              // go to next page
+
+      });
 
       function clicker() {
+              socket.emit('message', '/user ' + $('#usernameinput').val() + $('#passwordinput').val() );
 
 
-          if($('#passwordinput').val() == 'pass') {
-              $('#loginForm').hide();
-              //page2();
-
-              //$("button").hide();
-          }
       };
 
       function page2() {
@@ -54,14 +62,7 @@
       }
       
 
-      socket.on('error_message', function (msg) {
-        $('#messages').append($('<p class="chat_error"></p>').text(msg));
-      });
 
-
-      socket.on('message', function (msg) {
-        $('#messages').append($('<p></p>').text(msg));
-      });
 
 
       paper.install(window);
@@ -161,10 +162,10 @@
 
         <button class="sidemenu_theme" type="button" id="loginbtn" onclick="clicker()">login</button>
     </form>
-    <div id="messages" style="color:white;"></div>
 </div>
 
 <canvas id="myCanvas" resize></canvas>
+<div id="messages" style="color:white;"></div>
 
 </body>
 </html>
