@@ -9,7 +9,7 @@
             background: black;
         }
 
-        canvas[resize] {
+        canvas[resize]{
             width: 100%;
             height: 100%;
         }
@@ -56,6 +56,10 @@
             );
         }
 
+        function mainPage() {
+            $('#mainpage').show();
+        }
+
         function gamePage() {
             $('#gamePage').show();
             socket.emit('sync', 'all');
@@ -65,11 +69,11 @@
 
         // Only execute our code once the DOM is ready.
         window.onload = function () {
-            //$('#loginForm').hide();
-            //$('#gamePage').hide();
 
             var canvas = $('#myCanvas').get(0);
             paper.setup(canvas);
+            $('#gamePage').hide();
+
 
             loginPage();
 
@@ -79,6 +83,29 @@
 
                 console.log(network);
                 console.log("Number of nodes in network: " + network.nodes.length);
+
+//                function makeSmallNodes(){
+//                var x = 40;
+//                var y = 40;
+//                for (var i = 0; i < 6; i++) {
+//                    new Node(x, y, 10, "green");
+//                    x += 100;
+//                    y += 10;
+//
+//                }}
+//               makeSmallNodes();
+//                function makeMediumNodes() {
+//                    var x = 40;
+//                    var y = 40;
+//                    for (var i = 0; i < 4; i++) {
+//                        x += 100;
+//                        y += 10;
+//                        new Node(x, y, 20, "red");
+//
+//                    }}
+//
+//                    centerNode = new Node(500,500,20,'green');
+
 
                 for (var i = 0; i < network.nodes.length; i++) {
                     var node = network.nodes[i];
@@ -112,7 +139,7 @@
 
 <body>
 
-<div id="loginForm">
+<div id="loginForm" style="display: none">
     <p id="pagetitle">Login</p>
     <form action="">
         <div class="form-field">
@@ -122,12 +149,60 @@
 
         <div class="form-field">
             <label id="passwordtext">password:</label>
-            <input id="passwordinput">
+            <input id="passwordinput" type="password">
         </div>
 
         <button class="sidemenu_theme" type="button" id="loginbtn" onclick="loginAction()">login</button>
     </form>
 </div>
+
+
+<div id="mainpage" style="background-color: black;display: none">
+    <div class="heading">
+        <!--this is the heading-->
+        <h1 style="text-shadow:0px 0px 10px;color:green;font-size:100px" id="title"
+            class="head'">Hackwarz</h1>
+        <!--the network button and icon -->
+    </div>
+
+    <!--sidebar menu -->
+    <div class='container'>
+        <div class="align-left">left</div>
+        <div class="align-right">right</div>
+    </div>
+    <br>
+    <div id="sidemenu">
+
+
+        <button class="sidemenu_theme" id="digicoins" onclick="DigiCoinRedirect()">DigiCoins</button>
+        <br>
+        <br>
+
+        <button class="sidemenu_theme" id="startgame" onclick="startgp()">Start Game</button>
+
+        <br>
+        <br>
+
+        <button class="sidemenu_theme" id="firewall">firewall</button>
+
+        <br>
+        <br>
+
+        <button class="sidemenu_theme" id="logout">logout</button>
+
+        <br>
+        <br>
+
+        <button class="sidemenu_theme" id="hacks">hacks</button>
+
+        <br>
+        <br>
+
+        <button class="sidemenu_theme" id="help">help</button>
+
+    </div>
+</div>
+
 
 <div id="gamePage">
     <canvas id="myCanvas" resize></canvas>
