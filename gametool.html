@@ -10,13 +10,13 @@
             background: black;
         }
 
-        canvas[resize]{
+        canvas[resize] {
             width: 100%;
             height: 100%;
         }
     </style>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Hackwarz Network Editor</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
 
     <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
@@ -33,125 +33,290 @@
             var canvas = $('#myCanvas').get(0);
             paper.setup(canvas);
 
-            var Cpoint = new Point(200, 0);
-            var Cpoint2 = new Point(200, 1300);
+            var addedObjects = [];
+            var createToolsize = 30;
 
-            var path = new Path.Line(Cpoint, Cpoint2);
+            var createTool, plusFiveTool, minusFiveTool, connectTool, blueTool, deleteTool;
+
+            // Divider Line
+            var path = new Path.Line(new Point(200, 0), new Point(200, 1300));
             path.strokeColor = "green";
             path.strokeWidth = 8;
 
-            var addednodes = new Array();
 
-
-
-            var nodecreate40 = new Node(100,70,40,'green');
-            var addingnode40 = false;
-            nodecreate40.onMouseDown = function () {
-
-                if(this.selected == false){this.selected = true;
-                    if(nodecreate20.selected){nodecreate20.selected = false}
-                    if(nodecreate30.selected){nodecreate30.selected = false}
-                    if(nodecreate60.selected){nodecreate60.selected = false}
-                }else{
-                    this.selected = false
-                };
-
-            };
-
-            var nodecreate30 = new Node(100,220,30,'green');
-            var addingnode30 = false;
-            nodecreate30.onMouseDown = function () {
-                if(this.selected == false){this.selected = true;
-                    if(nodecreate20.selected){nodecreate20.selected = false}
-                    if(nodecreate40.selected){nodecreate40.selected = false}
-                    if(nodecreate60.selected){nodecreate60.selected = false}
-                }else{
-                    this.selected = false
-                };
-
-
-            };
-
-            var nodecreate20 = new Node(100,350,20,'green');
-            var addingnode20 = false;
-            nodecreate20.onMouseDown = function () {
-                if(this.selected == false){this.selected = true;
-                    if(nodecreate60.selected){nodecreate60.selected = false}
-                    if(nodecreate30.selected){nodecreate30.selected = false}
-                    if(nodecreate40.selected){nodecreate40.selected = false}
-                }else{
-                    this.selected = false
-                };
-
-            };
-
-            var nodecreate60 = new Node(100,500,60,'green');
-            nodecreate60.selected = false;
-            nodecreate60.onMouseDown = function () {
-                if(this.selected == false){this.selected = true;
-                    if(nodecreate20.selected){nodecreate20.selected = false}
-                    if(nodecreate30.selected){nodecreate30.selected = false}
-                    if(nodecreate40.selected){nodecreate40.selected = false}
-                }else{
-                    this.selected = false
-                };
-
-            };
-
-            var nodedelete = new Node(100,650,30,'#ff3535');
-            nodedelete.onMouseDown = function(){
-
-                var lastnode = addednodes[addednodes.length - 1];
-                addednodes.pop(lastnode)
-                lastnode.remove();
-            };
-
-            var highlight = new Array(nodecreate20,nodecreate30,nodecreate40,nodecreate60);
-
-
-
-            canvas.addEventListener('click', function() {
-                if(nodecreate20.selected == true){
-                    var evt = window.event || e;
-                    if(evt.clientX > 200) {
-                        var newnode = new Node(evt.clientX, evt.clientY, 20, 'green');
-                        addednodes.push(newnode);
-                        console.log("new Node(" + (evt.clientX) + ", " + (evt.clientY) + ", " + "20" + ', ' + ' "green"),');
+            // Create tool
+            function drawCreateTool(size) {
+                if (typeof createTool != 'undefined') createTool.remove(); // We will redraw the tool
+                createTool = new Node(80, 100, size, 'green');
+                createTool.onMouseDown = function () {
+                    if (this.selected == false) {
+                        deselectTools();
+                        this.selected = true;
+                    } else {
+                        this.selected = false;
                     }
-                }
-                if(nodecreate30.selected == true){
-                    var evt = window.event || e;
-                    if(evt.clientX > 200) {
-                        var newnode = new Node(evt.clientX, evt.clientY, 30, 'green');
-                        addednodes.push(newnode);
-                        console.log("new Node(" + (evt.clientX) + ", " + (evt.clientY) + ", " + "30" + ', ' + ' "green"),');
+                };
+            }
 
+            // Size plus five tool
+            plusFiveTool = new Node(120, 300, 10, '#7f7f7f');
+            plusFiveTool.onMouseDown = function () {
+                createToolsize += 5;
+                if (createToolsize > 100) createToolsize = 100;
+                drawCreateTool(createToolsize);
+            };
+
+            minusFiveTool = new Node(50, 300, 10, '#7f7f7f');
+            minusFiveTool.onMouseDown = function () {
+                createToolsize -= 5;
+                if (createToolsize < 5) createToolsize = 5;
+                drawCreateTool(createToolsize);
+            };
+
+            deleteTool = new Node(100, 600, 30, '#ff3535');
+//            deleteTool.onMouseDown = function () {
+//                var lastnode = addedObjects[addedObjects.length - 1];
+//                addedObjects.pop(lastnode)
+//                lastnode.remove();
+//            };
+            deleteTool.onMouseDown = function () {
+                if (this.selected == false) {
+                    deselectTools();
+                    this.selected = true;
+                } else this.selected = false;
+
+            };
+
+            blueTool = new Node(150, 580, 10, "#4286f4");
+            blueTool.onMouseDown = function () {
+                if (this.selected == false) {
+                    deselectTools();
+                    this.selected = true;
+                } else this.selected = false;
+            };
+
+            connectTool = new Node(150, 630, 10, "#f49542");
+            connectTool.onMouseDown = function () {
+                if (this.selected == false) {
+                    deselectTools();
+                    this.selected = true;
+                } else this.selected = false;
+            };
+
+            var linesarray = [];
+            var nodestogether = [];
+            var selectedNodes = [];
+
+            var hitOptions = {
+                class: Path,
+                segments: false,
+                stroke: false,
+                fill: true,
+                tolerance: 5
+            };
+
+            paper.view.onMouseDown = function(event) {
+                console.log(event);
+                if(event.point.x >= 205) { // ensure click is in network map area
+                    var hitResult = paper.project.hitTest(event.point, hitOptions);
+                    // Are we clicking on an existing object
+                    if (hitResult) {
+                        console.log(hitResult);
+                        // Did we click on a Node?
+                        if( hitResult.item.parent instanceof Node) {
+                            // Yes, we clicked on a node -- save it
+                            var node = hitResult.item.parent;
+                            console.log(node);
+                            // Is the deleteTool selected?
+                            if(deleteTool.selected){
+                                // remove the node from the view
+                                node.remove();
+                                // remove the node from the addedObjects array
+                                index = addedObjects.findIndex(function(testingNode) {
+                                    return testingNode.id == node.id;
+                                });
+                                if(index != -1) addedObjects.splice(index, 1);
+
+                                index2 = nodestogether.findIndex(function(testNode) {
+                                    return testNode.id == node.id;
+                                });
+                                if(index2 != -1) nodestogether.splice(index2, 1);
+                            }
+
+
+
+                            // If the node clicked is selected
+                            if(node.selected) {
+                                // deselect the node
+                                 node.selected = false;
+                                // remove the node from the selectedNodes array
+                                index = selectedNodes.findIndex(function(testingNode) {
+                                    return testingNode.id == node.id;
+                                });
+                                if(index != -1) selectedNodes.splice(index, 1);
+                            } else {
+                                // the node is not selected
+//                                if(node.baseColor.equals('green') ){
+//                                    for (n = 0; n < addedObjects.length; n++) {
+//                                        if(  (addedObjects[n].baseColor.equals("#4286f4") ) && (addedObjects[n].selected) ){
+//                                            for (i = 0; i < nodestogether.length; i++) {
+//                                              if(nodestogether[i] == ( (node,addedObjects[n]) || (addedObjects[n],node) ) ){
+//                                                  node.baseColor.equals("#4286f4");
+//                                              }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+                                // select the node and add it to the selected nodes list
+                                node.selected = true;
+                                if(deleteTool.selected == false){
+                                    selectedNodes.push(node);
+                                }
+
+                                console.log(selectedNodes);
+                            }
+                            // Is the connectTool selected?
+                            if(connectTool.selected){
+                                if(selectedNodes.length > 1){
+                                    // connect the nodes
+                                    for(i=0;i<selectedNodes.length-1;i++){
+                                        var line = connectNodes(selectedNodes[i],selectedNodes[i+1]);
+                                        nodestogether.push((selectedNodes[i], selectedNodes[i+1]));
+                                        addedObjects.push(line);
+                                    }
+
+                                    // deselect all nodes and empty the selected nodes list
+                                    for(i=0;i<selectedNodes.length;i++){
+                                        selectedNodes[i].selected = false;
+                                    }
+                                    selectedNodes = [];
+                                }
+                            }
+
+                        }
+                    } else {
+                        // We did not click on an existing object, process the click
+                        // Is the createTool selected?
+                        if (createTool.selected || blueTool.selected) {
+                            // blueTool creates blue nodes, create tool creates grenn nodes
+                            if (blueTool.selected) Ncolor = '#4286f4';
+                            if (createTool.selected) Ncolor = 'green';
+                            // Create a node
+                            var newnode = new Node(event.point.x, event.point.y, createToolsize, Ncolor);
+                            addedObjects.push(newnode);
+                        }
                     }
+                    console.log("addedObjects:");
+                    console.log(addedObjects);
+                    console.log("selectedNodes:");
+                    console.log(selectedNodes);
                 }
-                if(nodecreate40.selected == true){
-                    var evt = window.event || e;
-                    if(evt.clientX > 200) {
-                        var newnode = new Node(evt.clientX, evt.clientY, 40, 'green');
-                        addednodes.push(newnode);
-                        console.log("new Node(" + (evt.clientX) + ", " + (evt.clientY) + ", " + "40" + ', ' + ' "green"),');
+            };
 
-                    }
-                }
-                if(nodecreate60.selected == true){
-                    var evt = window.event || e;
-                    if(evt.clientX > 200) {
-                        var newnode = new Node(evt.clientX, evt.clientY, 60, 'green');
-                        addednodes.push(newnode);
-                        console.log("new Node(" + (evt.clientX) + ", " + (evt.clientY) + ", " + "60" + ', ' + ' "green"),');
-                    }
-                }
 
-            }, false);
+//            canvas.addEventListener('click', function () {
+//
+//                var evt = window.event || e;
+//                if (evt.clientX > 200) { // ensure click is in network map area
+//                    console.log('click on: ' + evt.currentTarget);
+//
+//
+//                    // Create a green or blue node
+//                    if (createTool.selected || blueTool.selected) {
+//                        // blueTool creates blue nodes, create tool creates grenn nodes
+//                        if (blueTool.selected) Ncolor = '#4286f4';
+//                        if (createTool.selected) Ncolor = 'green';
+//
+//                        // Create the node
+//                        var newnode = new Node(evt.clientX, evt.clientY, createToolsize, Ncolor);
+//
+//                        // The click action for each node
+//                        newnode.onMouseDown = function () {
+//                            if (deleteTool.selected) {
+//                                newnode.remove();
+//                                for (i = 0; i < addedObjects.length; i++) {
+//                                    if (addedObjects[i].id == newnode.id) {
+//                                        addedObjects[i].remove();
+//                                    }
+//                                }
+//                            }
+//
+//                            if(this.selected){this.selected = false}else{this.selected};
+//
+////                            if (this.baseColor.equals('green')) {
+////                                console.log('im green');
+////
+////                                for (i = 0; i < addedObjects.length; i++) {
+////
+////                                    if (addedObjects[i].selected) {
+////                                        selectedNodes.push(addedObjects[i].id);
+////                                    }
+////
+////                                    for (i = 0; i < selectedNodes.length; i++) {
+////                                        if (nodestogether.contains((this.id) && (selectedNodes[i]))) {
+////                                            this.baseColor = '#4286f4'
+////                                        }
+////                                    }
+////                                }
+////                            }
+//                        };
+//                        addedObjects.push(newnode);
+//                    }
+//
+//                    if (connectTool.selected) {
+//                        // linesarray stores the two nodes to be connected, it should only have 0, 1 or 2 elements
+//                        if (linesarray.length == 1) {
+//                            linesarray.push(newnode);
+//
+//                            function connectnodes(n1, n2) {
+//                                // TODO: Need to make lines an object type
+//                                var line = new Path();
+//                                line.type = 0;
+//                                //remember if you are going change this you must change it in the lines in the 140s about, in the onframe function
+//
+//                                line.name = "Line";
+//                                line.sendToBack();
+//                                line.add(n1.position);
+//                                line.add(n2.position);
+//                                line.strokeWidth = 10;
+//                                line.strokeColor = '#04ff00';
+//
+//                                //line.strokeColor.hue += ((10-speed)*10);
+//                                nodestogether.push((n1, n2));
+//                                addedObjects.push(line);
+//                                //line.speed = speed;
+//                                //linesarray = [];
+//                                console.log(nodestogether.length);
+//                                return line;
+//
+//                            }
+//
+//                            connectnodes(linesarray[0], linesarray[1]);
+//                            linesarray = [];
+//
+//                        } else {
+//                            console.log('hey there');
+//                            linesarray.push(newnode);
+//
+//                        }
+//
+//                    }
+//                }
+//
+//            }, false);
 
-          //  var linecreate =
 
+            function deselectTools() {
+                createTool.selected = false;
+                plusFiveTool.selected = false;
+                minusFiveTool.selected = false;
+                connectTool.selected = false;
+                blueTool.selected = false;
+                deleteTool.selected = false;
+            }
 
             // Draw the view now:
+            drawCreateTool(createToolsize);
             view.draw();
         }; //end OnLoad
 
@@ -163,8 +328,6 @@
 <div id="page">
     <canvas id="myCanvas" resize></canvas>
 </div>
-
-
 
 
 </body>

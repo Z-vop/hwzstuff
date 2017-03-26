@@ -1,10 +1,5 @@
 // ## Hacknode Drawing Functions ## //
 paper.install(window);
-window.nodes = [];
-window.lines = [];
-window.players = [];
-window.clickables = [];
-
 
 function Node(x, y, r, c) {
 
@@ -21,12 +16,14 @@ function Node(x, y, r, c) {
         radius: r + w, // border width is 15px
         shadowColor: c,
         shadowBlur: 80,
-        shadowOffset: new Point(0, 0)
+        shadowOffset: new Point(0, 0),
+        name: 'outerNode'
     });
 
     var innerNode = new Path.Circle({
         center: new Point(x, y),
-        radius: r
+        radius: r,
+        name: 'innerNode'
     });
 
     var arcNode = createArc(x, y, r + w, c);
@@ -34,7 +31,7 @@ function Node(x, y, r, c) {
     // Make the damage indicator (text)
     var damageText = new PointText({
         point: new Point(x, y + 10),
-        content: _health,
+        //content: _health,
         fillColor: 'white',
         opacity: 0.5,
         justification: 'center',
@@ -47,15 +44,15 @@ function Node(x, y, r, c) {
     var mouseTarget = new Path.Circle({
         center: new Point(x, y),
         radius: r + w,
-        fillColor: new Color(1, 0.001)
+        fillColor: new Color(1, 0.001),
+        name: 'mouseTarget'
     });
 
     setBaseColor(c);
-    Group.call(this, [outerNode, innerNode, arcNode, damageText, mouseTarget]);
 
     // Make the select circle and hide it
     var selectNode = new Path.Circle({
-        center: new Point(this.position.x, this.position.y),
+        center: new Point(x, y),
         radius: r + w,
         strokeColor: 'white',
         strokeWidth: 3,
@@ -67,7 +64,7 @@ function Node(x, y, r, c) {
 
     // Make the targeting circle and hide it
     var targetCircle = new Path.Circle({
-        center: new Point(this.position.x, this.position.y),
+        center: new Point(x, y),
         radius: r,
         strokeColor: 'orange',
         strokeWidth: 3,
@@ -76,6 +73,8 @@ function Node(x, y, r, c) {
         shadowOffset: new Point(0, 0)
     });
     targetCircle.visible = false;
+
+    Group.call(this, [outerNode, innerNode, arcNode, damageText, selectNode, targetCircle, mouseTarget]);
 
     // ACCESSORS
 
@@ -98,10 +97,10 @@ function Node(x, y, r, c) {
     });
     Object.defineProperty(this, "targeted", {
         get: function () {
-            return this.targetNode.visible;
+            return targetNode.visible;
         },
         set: function (_targeted) {
-            this.targetNode.visible = _targeted;
+            targetNode.visible = _targeted;
         }
     });
     Object.defineProperty(this, "health", {
@@ -114,8 +113,11 @@ function Node(x, y, r, c) {
         }
     });
     Object.defineProperty(this, "baseColor", {
+        get: function() {
+            return outerNode.fillColor;
+        },
         set: function (_color) {
-            setBaseColor(_color);
+                setBaseColor(_color);
         }
     });
 
@@ -150,6 +152,7 @@ function Node(x, y, r, c) {
         arcNode.add(new Point(x, y));
         arcNode.add(new Point(x, y - r));
         arcNode.rotate(45, new Point(x, y));
+        arcNode.name = 'arcNode';
         return arcNode;
     };
 }
@@ -157,13 +160,6 @@ function Node(x, y, r, c) {
 Node.prototype = Object.create(Group.prototype);
 Node.prototype.constructor = Group;
 
-
-// TODO: this is no longer valid
-// Does this node's connections include the node with id number n?
-// usage: node.isConnected(2);
-Node.prototype.isConnected = function (n) {
-    return this.connections.includes(n);
-}
 
 Node.prototype.isSelectable = function () {
     return this.owned;
@@ -175,6 +171,7 @@ Node.prototype.isSelectable = function () {
 function connectNodes(node1, node2) {
     // TODO: Need to make lines an object type
     var line = new Path();
+    line.name = 'line';
     line.sendToBack();
     line.add(node1.position);
     line.add(node2.position);
@@ -183,6 +180,8 @@ function connectNodes(node1, node2) {
     line.isAnAttack = false;
     line.node1 = node1;
     line.node2 = node2;
+    node1.connectedNodes.push(node2);
+    node2.connectedNodes.push(node1);
     return line;
 }
 

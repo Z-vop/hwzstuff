@@ -28,7 +28,7 @@
         var nodes = new Map();
 
         // Set up the socket.io connection
-        var socket = io('http://localhost:7000');
+        var socket = io('http://localhost:3000');
 
         socket.on('error_message', function (msg) {
             alert("Error: " + msg);
@@ -68,22 +68,52 @@
 
         paper.install(window);
 
+
         // Only execute our code once the DOM is ready.
         window.onload = function () {
 
             var canvas = $('#myCanvas').get(0);
             paper.setup(canvas);
-            $('#gamePage').hide();
 
 
-            loginPage();
+
+            socket.emit('sync', 'all');
+
+            //loginPage();
 
             socket.on('sync', function (msg) {
                 console.log("got sync");
                 var network = JSON.parse(msg);
 
-                console.log(network);
-                console.log("Number of nodes in network: " + network.nodes.length);
+//                for (i = 0; i < network.nodes.length; i++) {
+//                    console.log('hey');
+//                    var node = nodes[i];
+//                    //console.log("creating node: " + node.id);
+//                    new Node(node[0], node[1], node[2], node[3]);
+//                    node.onMouseDown = function (event) {
+//                        console.log('its working');
+//                        if (this.owned) {
+//                            this.selected = !(this.selected);
+//                        }
+//                    }; // end onMouseDown
+//                }
+
+
+//            for (i = 0; i < nodearray; i++) {
+//
+//                var node = nodearray[i];
+//                console.log("creating node: " + node.id);
+//                nodes.set(node.id, new Node(node.x, node.y, node.r, node.baseColor));
+//                node.onMouseDown = function (event) {
+//                    console.log('its working');
+//                    if (this.owned) {
+//                        this.selected = !(this.selected);
+//                    }
+//                }; // end onMouseDown
+//            }
+
+
+
 
 //                function makeSmallNodes(){
 //                var x = 40;
@@ -105,8 +135,13 @@
 //
 //                    }}
 //
-//                    centerNode = new Node(500,500,20,'green');
+//                centerNode = new Node(500,500,20,'green');
 
+
+
+                console.log(network);
+                console.log("Number of nodes in network: " + network.nodes.length);
+                var thex = 70;
 
                 for (var i = 0; i < network.nodes.length; i++) {
                     var node = network.nodes[i];
@@ -117,18 +152,19 @@
                             this.selected = !(this.selected);
                         }
                     }; // end onMouseDown
-                }
 
-                // loop through the connections in the network object and create them
-                for (var i = 0; i < network.connections.length; i++) {
-                    var connection = network.connections[i];
-                    node1 = nodes.get(connection.node1); //findNode(connection.node1);
-                    node2 = nodes.get(connection.node2); //findNode(connection.node2);
-                    if (node1 != null && node2 != null) {
-                        console.log("creating connection: " + connection.id);
-                        connections.set(connection.id, connectNodes(node1, node2));
-                    }
                 }
+//
+//                // loop through the connections in the network object and create them
+//                for (var i = 0; i < network.connections.length; i++) {
+//                    var connection = network.connections[i];
+//                    node1 = nodes.get(connection.node1); //findNode(connection.node1);
+//                    node2 = nodes.get(connection.node2); //findNode(connection.node2);
+//                    if (node1 != null && node2 != null) {
+//                        console.log("creating connection: " + connection.id);
+//                        connections.set(connection.id, connectNodes(node1, node2));
+//                    }
+//                }
             }); // end on sync
 
             // Draw the view now:
@@ -211,3 +247,4 @@
 
 </body>
 </html>
+

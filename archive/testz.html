@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html,
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+            background: black;
+        }
+
+        canvas[resize] {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+    <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="js/hacknode_graphics.js"></script>
+
+
+    <script type="text/javascript">
+        var connections = new Map();
+        var nodes = new Map();
+
+
+        // Set up the socket.io connection
+        var socket = io('http://localhost:7000');
+
+        socket.on('error_message', function (msg) {
+            alert("Error: " + msg);
+        });
+
+        socket.on('message', function (msg) {
+            console.log("Message: " + msg);
+        });
+
+        function loginPage() {
+            $('#loginForm').show();
+            socket.on('message', function (msg) {
+                if (msg.startsWith("Login successful")) {
+                    // take down login form
+                    $('#loginForm').hide();
+                    // go to next page
+                    gamePage();
+                }
+            });
+        }
+
+        function loginAction() {
+            socket.emit(
+                'message',
+                '/user ' + $('#usernameinput').val() + " " + $('#passwordinput').val()
+            );
+        }
+
+        function gamePage() {
+            $('#gamePage').show();
+            socket.emit('sync', 'all');
+        }
+
+
+
+        // Only execute our code once the DOM is ready.
+        window.onload = function () {
+            //$('#loginForm').hide();
+
+            $('#gamePage').hide();
+
+            var canvas = $('#myCanvas');
+            paper.install(window);
+            paper.setup(canvas);
+
+            var ctx = canvas.getContext("2d");
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(500, 700);
+            ctx.strokeStyle = '#ff0000';
+            ctx.stroke();
+
+
+            loginPage();
+
+            socket.on('sync', function (msg) {
+                console.log("got sync");
+                var network = JSON.parse(msg);
+                $('#myCanvas').show();
+
+                console.log(network);
+                console.log("Number of nodes in network: " + network.nodes.length);
+
+                for (var i = 0; i < network.nodes.length; i++) {
+                    var node = network.nodes[i];
+                    console.log("creating node: " + node.id);
+                    nodes.set(node.id, new Node(node.x, node.y, node.r, node.baseColor));
+                    node.onMouseDown = function (event) {
+                        if (this.owned) {
+                            this.selected = !(this.selected);
+                        }
+                    }; // end onMouseDown
+                }
+
+                // loop through the connections in the network object and create them
+                for (var i = 0; i < network.connections.length; i++) {
+                    var connection = network.connections[i];
+                    node1 = nodes.get(connection.node1); //findNode(connection.node1);
+                    node2 = nodes.get(connection.node2); //findNode(connection.node2);
+                    if (node1 != null && node2 != null) {
+                        console.log("creating connection: " + connection.id);
+                        connections.set(connection.id, connectNodes(node1, node2));
+                    }
+                }
+            }); // end on sync
+
+            // Draw the view now:
+            view.draw();
+        }; //end OnLoad
+
+    </script>
+</head>
+
+<body>
+
+<div id="loginForm">
+    <p id="pagetitle">Login</p>
+    <form action="">
+        <div class="form-field">
+            <label id="usernametext">username:</label>
+            <input id="usernameinput">
+        </div>
+
+        <div class="form-field">
+            <label id="passwordtext">password:</label>
+            <input id="passwordinput">
+        </div>
+
+        <button class="sidemenu_theme" type="button" id="loginbtn" onclick="loginAction()">login</button>
+    </form>
+</div>
+
+
+
+<canvas id="myCanvas" style="background-color: white" resize>
+
+</canvas>
+
+
+</body>
+</html>
