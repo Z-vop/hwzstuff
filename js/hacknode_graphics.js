@@ -160,7 +160,6 @@ function Node(x, y, r, c) {
 Node.prototype = Object.create(Group.prototype);
 Node.prototype.constructor = Group;
 
-
 Node.prototype.isSelectable = function () {
     return this.owned;
 }
