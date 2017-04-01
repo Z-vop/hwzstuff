@@ -33,10 +33,16 @@
             var canvas = $('#myCanvas').get(0);
             paper.setup(canvas);
 
+            var network = {
+                description: "Generic Network",
+                nodes: new Array(),            // Array of Nodes
+                connections: new Array(),      // Array of Connections (node IDs)
+            }
+
             var addedObjects = [];
             var createToolsize = 30;
 
-            var createTool, plusFiveTool, minusFiveTool, connectTool, blueTool, deleteTool;
+            var createTool, plusFiveTool, minusFiveTool, connectTool, blueTool, deleteTool,redTool,leveldata;
 
             // Divider Line
             var path = new Path.Line(new Point(200, 0), new Point(200, 1300));
@@ -85,6 +91,18 @@
 
             blueTool = new Node(150, 280, 10, "#4286f4");
             blueTool.onMouseDown = function () {
+                createTool.baseColor = '#4286f4';
+                Ncolor = '#4286f4';
+                if (this.selected == false) {
+                    deselectTools();
+                    this.selected = true;
+                } else this.selected = false;
+            };
+
+            redTool = new Node(110, 360, 10, "#df5767");
+            redTool.onMouseDown = function () {
+                createTool.baseColor = '#df5767';
+                Ncolor = '#df5767';
                 if (this.selected == false) {
                     deselectTools();
                     this.selected = true;
@@ -99,6 +117,15 @@
                 } else this.selected = false;
             };
 
+            leveldata = new Node(60, 360, 10, "#b983ea");
+            leveldata.onMouseDown = function () {
+                console.log(addedObjects);
+                //console.log(JSON.stringify(addedObjects[1].));
+               // console.log(JSON.stringify( { x: { value: 'x', enumerable: false }, y: { value: 'y', enumerable: true } } ));
+                console.log(JSON.stringify(addedObjects, ['x', 'y', 'c', 'r', 'name']));
+
+            };
+
             var hitOptions = {
                 //class: Path,
                 //segments: false,
@@ -106,6 +133,7 @@
                 fill: true,
                 tolerance: 5
             };
+
 
             paper.view.onMouseDown = function (event) {
                 console.log(event);
@@ -126,6 +154,7 @@
                         return;
                     }
 
+
                     if (item instanceof Node) {                     // Did we click on a Node?
                         item.selected = (!item.selected);
 
@@ -138,13 +167,16 @@
                     }
                 } else {
                     // We did not click on an existing object, process the click
-                    if (createTool.selected || blueTool.selected) {
-                        // blueTool creates blue nodes, create tool creates green nodes
-                        if (blueTool.selected) Ncolor = '#4286f4';
-                        if (createTool.selected) Ncolor = 'green';
+                    if (createTool.selected || blueTool.selected || redTool.selected) {
+
+                        if (blueTool.selected) Ncolor = createTool.baseColor;
+                        if (redTool.selected) Ncolor = createTool.baseColor;
+                        if (createTool.selected) Ncolor = createTool.baseColor;
                         // Create a node
                         var newnode = new Node(event.point.x, event.point.y, createToolsize, Ncolor);
-                        addedObjects.push(newnode);
+                        console.log(event.point.x, event.point.y, createToolsize, Ncolor);
+                        addedObjects.push(new Object(newnode,newnode.attributes));
+                        // network.nodes.push(newnode);
                     }
                 }
             };
@@ -163,11 +195,28 @@
                 }
                 return selectedNodes;
             }
+//
+//            for(i=0;i<addedObjects.length;i++){
+//                if(addedObjects[n].id == this.node2.id){}
+//                if(addedObjects[n].id == this.node2.id){}
+//            }
+
+            // Return an array of all of the Path items
+            function getPaths() {
+                var pathItems = [];
+                for(i=0;i<addedObjects.length;i++){
+                    if(addedObjects[i] instanceof Path){
+                        pathItems.push(addedObjects[i]);;
+                    }
+                }
+                return pathItems;
+            }
 
             // Connect an array of Node objects
             function connectAllNodes(nodesArray) {
                 for (var i = 0; i < nodesArray.length - 1; i++) {
                     addedObjects.push(connectNodes(nodesArray[i], nodesArray[i + 1]));
+                    // network.connections.push();
                 }
             }
 
@@ -179,8 +228,7 @@
             // Remove a Node or Path from the addedObjects array
             function removeObject(item) {
                 item.remove();
-                // TODO if the item is a line, remove the connectedItem from each of the nodes
-                // TODO: if the item is a Node and it is connected, remove the line for each connectedItem
+                // TODO: if the item is a Node and it is connected, remove each connected line
                 index = addedObjects.findIndex(function (testItem) {
                     return testItem.id == item.id;
                 });
@@ -195,6 +243,7 @@
                 connectTool.selected = false;
                 blueTool.selected = false;
                 deleteTool.selected = false;
+                redTool.selected = false;
             }
 
             // Draw the view now:
@@ -215,95 +264,4 @@
 </body>
 </html>
 
-
-//            canvas.addEventListener('click', function () {
-//
-//                var evt = window.event || e;
-//                if (evt.clientX > 200) { // ensure click is in network map area
-//                    console.log('click on: ' + evt.currentTarget);
-//
-//
-//                    // Create a green or blue node
-//                    if (createTool.selected || blueTool.selected) {
-//                        // blueTool creates blue nodes, create tool creates grenn nodes
-//                        if (blueTool.selected) Ncolor = '#4286f4';
-//                        if (createTool.selected) Ncolor = 'green';
-//
-//                        // Create the node
-//                        var newnode = new Node(evt.clientX, evt.clientY, createToolsize, Ncolor);
-//
-//                        // The click action for each node
-//                        newnode.onMouseDown = function () {
-//                            if (deleteTool.selected) {
-//                                newnode.remove();
-//                                for (i = 0; i < addedObjects.length; i++) {
-//                                    if (addedObjects[i].id == newnode.id) {
-//                                        addedObjects[i].remove();
-//                                    }
-//                                }
-//                            }
-//
-//                            if(this.selected){this.selected = false}else{this.selected};
-//
-////                            if (this.baseColor.equals('green')) {
-////                                console.log('im green');
-////
-////                                for (i = 0; i < addedObjects.length; i++) {
-////
-////                                    if (addedObjects[i].selected) {
-////                                        selectedNodes.push(addedObjects[i].id);
-////                                    }
-////
-////                                    for (i = 0; i < selectedNodes.length; i++) {
-////                                        if (nodestogether.contains((this.id) && (selectedNodes[i]))) {
-////                                            this.baseColor = '#4286f4'
-////                                        }
-////                                    }
-////                                }
-////                            }
-//                        };
-//                        addedObjects.push(newnode);
-//                    }
-//
-//                    if (connectTool.selected) {
-//                        // linesarray stores the two nodes to be connected, it should only have 0, 1 or 2 elements
-//                        if (linesarray.length == 1) {
-//                            linesarray.push(newnode);
-//
-//                            function connectnodes(n1, n2) {
-//                                // TODO: Need to make lines an object type
-//                                var line = new Path();
-//                                line.type = 0;
-//                                //remember if you are going change this you must change it in the lines in the 140s about, in the onframe function
-//
-//                                line.name = "Line";
-//                                line.sendToBack();
-//                                line.add(n1.position);
-//                                line.add(n2.position);
-//                                line.strokeWidth = 10;
-//                                line.strokeColor = '#04ff00';
-//
-//                                //line.strokeColor.hue += ((10-speed)*10);
-//                                nodestogether.push((n1, n2));
-//                                addedObjects.push(line);
-//                                //line.speed = speed;
-//                                //linesarray = [];
-//                                console.log(nodestogether.length);
-//                                return line;
-//
-//                            }
-//
-//                            connectnodes(linesarray[0], linesarray[1]);
-//                            linesarray = [];
-//
-//                        } else {
-//                            console.log('hey there');
-//                            linesarray.push(newnode);
-//
-//                        }
-//
-//                    }
-//                }
-//
-//            }, false);
 

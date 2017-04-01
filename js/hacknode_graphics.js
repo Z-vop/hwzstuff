@@ -5,7 +5,10 @@ function Node(x, y, r, c) {
 
 
     this.name = "Node at " + x + "," + y + " with color " + c;
-    this.connectedNodes = [];
+    this.x = x;
+    this.y = y;
+    this.baseColor = c;
+    this.r = r;
 
     var _health = 100;
     var owned = false;
@@ -179,8 +182,6 @@ function connectNodes(node1, node2) {
     line.isAnAttack = false;
     line.node1 = node1;
     line.node2 = node2;
-    node1.connectedNodes.push(node2);
-    node2.connectedNodes.push(node1);
     return line;
 }
 
