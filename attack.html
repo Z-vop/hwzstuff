@@ -40,9 +40,10 @@
             }
 
             var addedObjects = [];
+
             var createToolsize = 30;
 
-            var createTool, plusFiveTool, minusFiveTool, connectTool, blueTool, deleteTool,redTool,leveldata;
+            var createTool, plusFiveTool, minusFiveTool, connectTool, blueTool, deleteTool, redTool, leveldata;
 
             // Divider Line
             var path = new Path.Line(new Point(200, 0), new Point(200, 1300));
@@ -62,6 +63,7 @@
                     }
                 };
             }
+
 
             // Size plus five tool
             plusFiveTool = new Node(120, 200, 10, '#7f7f7f');
@@ -121,20 +123,19 @@
             leveldata.onMouseDown = function () {
                 //console.log(addedObjects);
                 //console.log(JSON.stringify(addedObjects[1].));
-               // console.log(JSON.stringify( { x: { value: 'x', enumerable: false }, y: { value: 'y', enumerable: true } } ));
+                // console.log(JSON.stringify( { x: { value: 'x', enumerable: false }, y: { value: 'y', enumerable: true } } ));
                 //console.log(JSON.stringify(addedObjects, ['x', 'y', 'c', 'r', 'name']));
-                for(i=0;i<addedObjects.length;i++) {
+                for (i = 0; i < addedObjects.length; i++) {
 
-                    if(addedObjects[i].name == 'line' ){
-                        console.log("connectNodes(" + (addedObjects[i].node1.id) + "," + (addedObjects[i].node2.id) + ");" );
+                    if (addedObjects[i].name == 'line') {
+                        console.log("connectNodes(" + (addedObjects[i].node1.id) + "," + (addedObjects[i].node2.id) + ");");
                     }
 
-                    if(addedObjects[i] instanceof Node){
-                        console.log("new Node(" + (addedObjects[i].x)+ ", " + (addedObjects[i].y) + ', '
-                            + (addedObjects[i].r) + ", '" + (addedObjects[i].baseColor.toCSS(true)) +"');");
+                    if (addedObjects[i] instanceof Node) {
+                        console.log("new Node(" + (addedObjects[i].x) + ", " + (addedObjects[i].y) + ', '
+                            + (addedObjects[i].r) + ", '" + (addedObjects[i].baseColor.toCSS(true)) + "');");
                     }
                 }
-
 
 
             };
@@ -147,35 +148,49 @@
                 tolerance: 5
             };
 
-
             paper.view.onMouseDown = function (event) {
-                console.log(event);
-                if (event.point.x < 205) return;                         // ensure click is in network map area
+                if (event.point.x < 205) return;                    // ensure click is in network map area
+                console.log("Map Event: ", event);
 
                 var hitResult = paper.project.hitTest(event.point, hitOptions);
 
                 if (hitResult) {                                    // Are we clicking on an existing object?
-                    var item;
+                    var clickedItem;
                     if (hitResult.item.parent instanceof Node) {    // Find either the Node or the Path object
-                        item = hitResult.item.parent;
+                        clickedItem = hitResult.item.parent;
                     } else {
-                        item = hitResult.item;
+                        clickedItem = hitResult.item;
                     }
+                    console.log("hitTarget: ", clickedItem);
 
                     if (deleteTool.selected) {                      // Is the deleteTool selected?
-                        removeObject(item);                         // remove the object from the view and the list
+                        removeObject(clickedItem);                  // remove the object from the view and the list
                         return;
                     }
 
 
-                    if (item instanceof Node) {                     // Did we click on a Node?
-                        item.selected = (!item.selected);
 
-                        if (connectTool.selected) {
-                            if (countSelectedNodes() > 1) {
-                                connectAllNodes(getSelectedNodes());
-                                deselectNodes(getSelectedNodes());
-                            }
+                    if (clickedItem instanceof Node) {                     // Did we click on a Node?
+                        clickedItem.selected = (!clickedItem.selected);
+
+                        // If we clicked on a green node that is connected to a selected blue node, change the ownership
+                        if (isNotOwned(clickedItem)) {
+                            getConnectedPaths(clickedItem).forEach(function (line) {  // for each line that is connected to the clicked-on Node
+                                getSelectedNodes().filter(isOwned).forEach(function (selectedBlueNode) {
+                                    if (LineIsConnectedToNode(line, selectedBlueNode)) { // the node is connected to the line
+                                        clickedItem.baseColor = "#4286f4";   // flip the item color
+                                        clickedItem.selected = false;
+                                    }
+                                });
+                            });
+                        }
+                    }
+
+
+                    if (connectTool.selected) {
+                        if (countSelectedNodes() > 1) {
+                            connectAllNodes(getSelectedNodes());
+                            deselectNodes(getSelectedNodes());
                         }
                     }
                 } else {
@@ -192,37 +207,93 @@
                         // network.nodes.push(newnode);
                     }
                 }
-            };
+            }
+
+            /* FUNCTIONS */
+
+            //return the color of the item
+            function whatiscolor(item) {
+                var thisitemcolor = 'white';
+                if (!(item instanceof Node)) return thisitemcolor;
+
+                var red = item.baseColor.components[0];
+                var green = item.baseColor.components[1];
+                var blue = item.baseColor.components[2];
+
+                if (red > green && red > blue) {
+                    thisitemcolor = 'red';
+                }
+                if (green > red && green > blue) {
+                    thisitemcolor = 'green';
+
+                }
+                if (blue > red && blue > green) {
+                    thisitemcolor = 'blue';
+                }
+
+                return thisitemcolor;
+            }
+
+            function isOwned(node) {
+                if(!(node instanceof Node)) return false;
+                return whatiscolor(node) == "blue";
+            }
+
+            function isNotOwned(node) {
+                if(!(node instanceof Node)) return false;
+                return whatiscolor(node) != "blue";
+            }
+
+            // Return an array of all Nodes
+            function getNodes() {
+                return addedObjects.filter(function (item) { return item instanceof Node });
+            }
+
+            // Return an array of all the selected nodes
+            function getSelectedNodes() {
+                return getNodes().filter(function (item) { return item.selected; });
+//                var selectedNodes = [];
+//                for (var i = 0; i < addedObjects.length; i++) {
+//                    if (!(addedObjects[i] instanceof Node)) continue; // only include Nodes
+//                    if( addedObjects[i].selected) selectedNodes.push(addedObjects[i]);
+//                }
+//                return selectedNodes;
+            }
 
             // Return a count of selected nodes
             function countSelectedNodes() {
                 return getSelectedNodes().length;
             }
 
-            // Return an array of all the selected nodes
-            function getSelectedNodes() {
-                var selectedNodes = [];
-                for (var i = 0; i < addedObjects.length; i++) {
-                    if (!(addedObjects[i] instanceof Node)) continue; // only include Nodes
-                    if( addedObjects[i].selected) selectedNodes.push(addedObjects[i]);
-                }
-                return selectedNodes;
-            }
-//
-//            for(i=0;i<addedObjects.length;i++){
-//                if(addedObjects[n].id == this.node2.id){}
-//                if(addedObjects[n].id == this.node2.id){}
-//            }
 
             // Return an array of all of the Path items
             function getPaths() {
-                var pathItems = [];
-                for(i=0;i<addedObjects.length;i++){
-                    if(addedObjects[i] instanceof Path){
-                        pathItems.push(addedObjects[i]);;
-                    }
-                }
-                return pathItems;
+                return addedObjects.filter(function (item) { return item instanceof Path });
+//                var pathItems = [];
+//                for(i=0;i<addedObjects.length;i++){
+//                    if(addedObjects[i] instanceof Path){
+//                        pathItems.push(addedObjects[i]);;
+//                    }
+//                }
+//                return pathItems;
+            }
+
+            /**
+             * @return {boolean}
+             */
+            function LineIsConnectedToNode(line, node) {
+                if(!(line instanceof Path)) return false;
+                if(!(node instanceof Node)) return false;
+                return (line.node1.id == node.id || line.node2.id == node.id);
+            }
+
+            // Return an array of all lines connected to node
+            function getConnectedPaths(node) {
+                if (!(node instanceof Node)) return [];
+
+                return getPaths().filter(function (path) {
+                    return LineIsConnectedToNode(path, node)
+                });
             }
 
             // Connect an array of Node objects
@@ -240,15 +311,18 @@
 
             // Remove a Node or Path from the addedObjects array
             function removeObject(item) {
+                // If the item is a Node and it is connected, remove each connected line
+                if(item instanceof Node) {
+                    getConnectedPaths(item).forEach(removeObject);
+                }
                 item.remove();
-                // TODO: if the item is a Node and it is connected, remove each connected line
                 index = addedObjects.findIndex(function (testItem) {
                     return testItem.id == item.id;
                 });
                 if (index != -1) addedObjects.splice(index, 1);
             }
 
-            // Deselected all the tools
+            // Deselect all the tools
             function deselectTools() {
                 createTool.selected = false;
                 plusFiveTool.selected = false;
@@ -262,7 +336,8 @@
             // Draw the view now:
             drawCreateTool(createToolsize);
             view.draw();
-        }; //end OnLoad
+        }
+        ; //end OnLoad
 
     </script>
 </head>

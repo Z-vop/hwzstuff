@@ -3,11 +3,10 @@ paper.install(window);
 
 function Node(x, y, r, c) {
 
-
     this.name = "Node at " + x + "," + y + " with color " + c;
     this.x = x;
     this.y = y;
-    this.baseColor = c;
+    this.color = c;
     this.r = r;
 
     var _health = 100;
