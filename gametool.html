@@ -240,8 +240,11 @@
 
             // Remove a Node or Path from the addedObjects array
             function removeObject(item) {
+                // If the item is a Node and it is connected, remove each connected line
+                if(item instanceof Node) {
+                    getConnectedPaths(item).forEach(removeObject);
+                }
                 item.remove();
-                // TODO: if the item is a Node and it is connected, remove each connected line
                 index = addedObjects.findIndex(function (testItem) {
                     return testItem.id == item.id;
                 });

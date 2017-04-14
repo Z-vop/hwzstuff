@@ -19,6 +19,7 @@
     <title>Hackwarz Network Editor</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
 
+    <!-- TODO: paperjs should not be coming from file system -->
     <script type="text/javascript" src="js/paperjs-v0.10.2/dist/paper-full.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
@@ -170,16 +171,18 @@
 
 
 
-                    if (clickedItem instanceof Node) {                     // Did we click on a Node?
-                        clickedItem.selected = (!clickedItem.selected);
+                    if (clickedItem instanceof Node) {              // Did we click on a Node?
+                        var clickedNode = clickedItem;               // Just for clarity
+                        clickedNode.selected = (!clickedNode.selected);
 
                         // If we clicked on a green node that is connected to a selected blue node, change the ownership
-                        if (isNotOwned(clickedItem)) {
-                            getConnectedPaths(clickedItem).forEach(function (line) {  // for each line that is connected to the clicked-on Node
+                        if (!isOwned(clickedNode)) {
+                            getConnectedPaths(clickedNode).forEach(function (line) {  // for each line that is connected to the clicked-on Node
+                                // TODO: Instead of testing all selected blue nodes, test the one node at the other end of the line
                                 getSelectedNodes().filter(isOwned).forEach(function (selectedBlueNode) {
                                     if (LineIsConnectedToNode(line, selectedBlueNode)) { // the node is connected to the line
-                                        clickedItem.baseColor = "#4286f4";   // flip the item color
-                                        clickedItem.selected = false;
+                                        clickedNode.baseColor = "#4286f4";   // flip the item color
+                                        clickedNode.selected = false;
                                     }
                                 });
                             });
@@ -236,12 +239,9 @@
 
             function isOwned(node) {
                 if(!(node instanceof Node)) return false;
+                // TODO: Don't have the idea of ownership be based on a color
+                // TODO: Have node colors be based on ownership
                 return whatiscolor(node) == "blue";
-            }
-
-            function isNotOwned(node) {
-                if(!(node instanceof Node)) return false;
-                return whatiscolor(node) != "blue";
             }
 
             // Return an array of all Nodes

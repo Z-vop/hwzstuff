@@ -81,6 +81,8 @@ function Node(x, y, r, c) {
     // ACCESSORS
 
     Object.defineProperty(this, "owned", {
+        // TODO: The notion of 'owned' should be whether there is an owner
+        // TODO: The owner should be one of the Users
         get: function () {
             return owned;
         },
@@ -182,6 +184,7 @@ function connectNodes(node1, node2) {
     line.node1 = node1;
     line.node2 = node2;
     return line;
+    // TODO: Add a Network object to the graphics lib and manage it within the library
 }
 
 
