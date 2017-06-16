@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.rawgit.com/konvajs/konva/0.10.0/konva.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+        }
+
+    </style>
+</head>
+<body>
+<div id="stage">
+    <script>
+
+        const stage = new Konva.Stage({
+            container: 'stage',
+            width: window.innerWidth,
+            height: window.innerHeight
+        });
+        const lines_layer = new Konva.Layer();
+        const nodes_layer = new Konva.Layer();
+        stage.add(lines_layer);
+        stage.add(nodes_layer);
+        lines_layer.draw();
+        nodes_layer.draw();
+
+        stage.on('contentClick', function() {
+            console.log('content click on ' + JSON.stringify(stage.getPointerPosition()));
+            // MAKE A NODE
+        });
+
+        function makeNode(x, y, r) {
+            const group = new Konva.Group();
+            const outerNode = new Konva.Circle({
+                x: x,
+                y: y,
+                radius: r,
+                fill: '#7BBC9B',
+                shadowColor: '#7BBC9B',
+                shadowBlur: 80
+            });
+            group.add(outerNode);
+            const health = new Konva.Wedge({
+                x: x,
+                y: y,
+                radius: r,
+                angle: 0,
+                fill: 'grey',
+                strokeWidth: 4,
+                rotation: -90
+            });
+            // add the shape to the layer
+            group.add(health);
+
+            const innerNode = new Konva.Circle({
+                x: x,
+                y: y,
+                radius: r - 15,
+                fill: '#A9DAAA'
+            });
+            group.add(innerNode);
+            const wedge = new Konva.Wedge({
+                x: x,
+                y: y,
+                radius: r,
+                angle: 180,
+                rotation: 125,
+                fill: 'black',
+                opacity: 0.08
+            });
+            group.add(wedge)
+            const select = new Konva.Circle({
+                name: 'select',
+                x: x,
+                y: y,
+                radius: r,
+                fillEnabled: false,
+                strokeScaleEnabled: false,
+                stroke: 'orange',
+                strokeWidth: 5,
+                visible: false
+            });
+            group.add(select);
+
+            group.draggable(true)
+            return group;
+        }
+
+        function makeLine(x1, y1, x2, y2) {
+            console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2)
+            const line = new Konva.Line({
+                points: [x1, y1, x2, y2],
+                stroke: '#1C3959',
+                strokeWidth: 10
+            });
+            return line;
+        }
+
+    </script>
+</div>
+</body>
+</html>
