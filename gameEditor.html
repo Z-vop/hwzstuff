@@ -8,12 +8,47 @@
         body {
             margin: 0;
             background-color: black;
+
         }
+
+        button {
+            height: 24px;
+            width: 100px;
+            margin: 3px;
+        }
+
+        #options {display:inline-block;margin-right:10px;}
+        #mkStuff {display:inline-block;margin-right:20px;}
+        #editSizeStuff {display:inline-block;margin-right:40px;}
+        #nodesizeLabel {display:inline-block;margin-right:50px;}
+
+
 
     </style>
 </head>
 <body>
-<div id="stage">
+
+
+<form id="options">
+    <label style="color:red;"><input id="red" style="color:red" type="radio" name="color" value="red">Red</label> <br>
+    <label style="color:green;"><input id="green" style="color:green" type="radio" name="color" value="green">green</label> <br>
+    <label style="color:blue;"><input id="blue" style="color:blue" type="radio" name="color" value="blue">blue</label>
+</form>
+
+<form id="mkStuff">
+    <button type="button" id="mknodeBtn" style="background-color:skyblue;">makeNode</button><br>
+    <button type="button" id="mklineBtn">makeLine</button>
+</form>
+
+<form id="editSizeStuff">
+    <button type="button" id="MinusNdSz">MinusNdSz</button><br>
+    <button type="button" id="AddNdSz">AddNdSz</button>
+</form>
+
+<label id="nodesizeLabel" style="color:white;">50</label>
+
+<div id="stage"></div>
+
     <script>
 
         const stage = new Konva.Stage({
@@ -28,25 +63,103 @@
         lines_layer.draw();
         nodes_layer.draw();
 
+        var mknode = true;
+        document.getElementById('mknodeBtn').onclick=function() {
+            mkline = false; mknode = true;
+            document.getElementById("mknodeBtn").style["background-color"] = "skyblue";
+            document.getElementById("mklineBtn").style["background-color"] = "lightgrey";
+        }
+
+        var mkline = false;
+        document.getElementById('mklineBtn').onclick =function() {
+            mkline = true; mknode = false;
+            document.getElementById("mklineBtn").style["background-color"] = "skyblue";
+            document.getElementById("mknodeBtn").style["background-color"] = "lightgrey";
+        };
+
+        var mknodesize = 50;
+        document.getElementById('MinusNdSz').onclick=function() {
+            if(mknodesize > 15) {
+                mknodesize -= 5;
+            }
+            document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
+        };
+
+        document.getElementById('AddNdSz').onclick =function() {
+            mknodesize += 5;
+            document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
+        };
+
+        var linePoints = [];
+        var nodeClicked = false;
+
         stage.on('contentClick', function() {
-            console.log('content click on ' + JSON.stringify(stage.getPointerPosition()));
-            // MAKE A NODE
+            var mousePos = stage.getPointerPosition();
+            var x = mousePos.x;
+            var y = mousePos.y;
+
+            if(nodeClicked) {
+                var nodePos = nodeClicked.getPosition()
+                console.log('node click on ' + JSON.stringify(nodePos));
+
+                if(mkline == true) {
+                    linePoints.push(nodePos);
+                    if(linePoints.length < 2) return;
+
+                    var newConnection = makeConnection(linePoints[0], linePoints[1])
+                    lines_layer.add(newConnection);
+                    lines_layer.draw();
+                    linePoints = []
+                }
+
+                nodeClicked = false;
+                return
+            }
+
+
+            console.log('content click on ' + JSON.stringify(mousePos));
+
+            if(mknode == true) {
+                var newColor = 'lightgrey';
+                var newInnerColor = "";
+                // Get the color here
+                // TODO: Use the correct colors
+                if(document.getElementById("red").checked == true){
+                    newColor = 'red';
+                    newInnerColor = "#f44842";
+
+                }else if(document.getElementById("green").checked == true){
+                    newColor = '#7BBC9B';
+                    newInnerColor = '#A9DAAA';
+
+                }else if(document.getElementById("blue").checked == true){
+                    newColor = 'blue'
+                    newInnerColor = 'blue'
+                }
+
+                const node = makeNode(x, y, mknodesize, newColor, newInnerColor);
+                nodes_layer.add(node);
+                nodes_layer.draw();
+
+            }
+
         });
 
-        function makeNode(x, y, r) {
-            const group = new Konva.Group();
-            const outerNode = new Konva.Circle({
+
+
+        function makeNode(x, y, r , color, innerColor) {
+            const group = new Konva.Group({
                 x: x,
-                y: y,
+                y: y
+            });
+            const outerNode = new Konva.Circle({
                 radius: r,
-                fill: '#7BBC9B',
-                shadowColor: '#7BBC9B',
+                fill: color,
+                shadowColor: color,
                 shadowBlur: 80
             });
             group.add(outerNode);
             const health = new Konva.Wedge({
-                x: x,
-                y: y,
                 radius: r,
                 angle: 0,
                 fill: 'grey',
@@ -57,26 +170,20 @@
             group.add(health);
 
             const innerNode = new Konva.Circle({
-                x: x,
-                y: y,
-                radius: r - 15,
-                fill: '#A9DAAA'
+                radius: r-15,
+                fill: innerColor
             });
             group.add(innerNode);
             const wedge = new Konva.Wedge({
-                x: x,
-                y: y,
                 radius: r,
                 angle: 180,
                 rotation: 125,
                 fill: 'black',
                 opacity: 0.08
             });
-            group.add(wedge)
+            group.add(wedge);
             const select = new Konva.Circle({
                 name: 'select',
-                x: x,
-                y: y,
                 radius: r,
                 fillEnabled: false,
                 strokeScaleEnabled: false,
@@ -86,12 +193,98 @@
             });
             group.add(select);
 
-            group.draggable(true)
+//            group.on('click', function() {
+//                var s = this.find('.select')[0];
+//                s.visible(!s.isVisible());
+//                nodes_layer.draw();
+//                setInterval(
+//                    function () {
+//                        if (health.angle() > 360) {
+//                            health.angle(0);
+//                        }
+//                        health.angle(health.angle() + 1);
+//                        health.rotation(-90 - health.angle() / 2);
+//                        nodes_layer.draw();
+//                    }, 100);
+//                nodes_layer.draw();
+//
+//            });
+            group.on('click', function() {
+                nodeClicked = this;
+            });
+
+            group.draggable(true);
             return group;
         }
 
+        function makeConnection(point1, point2) {
+            var x1 = point1.x;
+            var y1 = point1.y;
+            var x2 = point2.x;
+            var y2 = point2.y;
+            const line_radius = 20;
+            var line_rotation = 0;
+            const group = new Konva.Group();
+
+            if (y1 > y2) {
+                console.log("node1 is lower than node2");
+                if (x1 < x2) {
+                    console.log("node1 is to the left of node2");
+                    var line01 = makeLine(x1, y1, x1, y2 + line_radius);
+                    group.add(line01);
+                    var line02 = makeLine(x1 + line_radius, y2, x2, y2);
+                    group.add(line02);
+                    group.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
+                    line_rotation = 270;
+                } else {
+                    console.log("node1 is to the right of node2");
+                    var line03 = makeLine(x1, y1, x1, y2 + line_radius);
+                    group.add(line03);
+                    var line04 = makeLine(x1 - line_radius, y2, x2, y2);
+                    group.add(line04);
+                    line_rotation = 90; //////
+                    group.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
+                }
+            } else {
+                console.log("node1 is higher than node2");
+                if (x1 < x2) {
+                    console.log("node1 is to the left of node2");
+                    var line05 = makeLine(x2, y2, x2, y1 + line_radius);
+                    group.add(line05);
+                    var line06 = makeLine(x1, y1, x2 - line_radius, y1);
+                    group.add(line06);
+                    group.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
+                } else {
+                    console.log("node1 is to the right of node2");
+                    var line07 = makeLine(x1, y1, x2 + line_radius, y1);
+                    group.add(line07);
+                    var line08 = makeLine(x2, y1 + line_radius, x2, y2);
+                    group.add(line08);
+                    group.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
+                }
+            }
+
+            // TODO: makeArc is not being called, also arc needs to be added to group
+            function makeArc(x, y, rot) {
+                return new Konva.Arc({
+                    x: x,
+                    y: y,
+                    innerRadius: line_radius,
+                    outerRadius: line_radius,
+                    angle: 90,
+                    rotation: rot,
+                    stroke: '#1C3959',
+                    strokeWidth: 10
+                })
+            }
+
+            return group;
+        }
+
+
+
         function makeLine(x1, y1, x2, y2) {
-            console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2)
+            console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2);
             const line = new Konva.Line({
                 points: [x1, y1, x2, y2],
                 stroke: '#1C3959',
@@ -101,6 +294,6 @@
         }
 
     </script>
-</div>
+
 </body>
 </html>
