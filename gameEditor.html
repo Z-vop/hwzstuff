@@ -17,11 +17,25 @@
             margin: 3px;
         }
 
-        #options {display:inline-block;margin-right:10px;}
-        #mkStuff {display:inline-block;margin-right:20px;}
-        #editSizeStuff {display:inline-block;margin-right:40px;}
-        #nodesizeLabel {display:inline-block;margin-right:50px;}
+        #options {
+            display: inline-block;
+            margin-right: 10px;
+        }
 
+        #mkStuff {
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        #editSizeStuff {
+            display: inline-block;
+            margin-right: 40px;
+        }
+
+        #nodesizeLabel {
+            display: inline-block;
+            margin-right: 50px;
+        }
 
 
     </style>
@@ -31,17 +45,20 @@
 
 <form id="options">
     <label style="color:red;"><input id="red" style="color:red" type="radio" name="color" value="red">Red</label> <br>
-    <label style="color:green;"><input id="green" style="color:green" type="radio" name="color" value="green">green</label> <br>
+    <label style="color:green;"><input id="green" style="color:green" type="radio" name="color"
+                                       value="green">green</label> <br>
     <label style="color:blue;"><input id="blue" style="color:blue" type="radio" name="color" value="blue">blue</label>
 </form>
 
 <form id="mkStuff">
-    <button type="button" id="mknodeBtn" style="background-color:skyblue;">makeNode</button><br>
+    <button type="button" id="mknodeBtn" style="background-color:skyblue;">makeNode</button>
+    <br>
     <button type="button" id="mklineBtn">makeLine</button>
 </form>
 
 <form id="editSizeStuff">
-    <button type="button" id="MinusNdSz">MinusNdSz</button><br>
+    <button type="button" id="MinusNdSz">MinusNdSz</button>
+    <br>
     <button type="button" id="AddNdSz">AddNdSz</button>
 </form>
 
@@ -49,149 +66,156 @@
 
 <div id="stage"></div>
 
-    <script>
+<script>
 
-        const stage = new Konva.Stage({
-            container: 'stage',
-            width: window.innerWidth,
-            height: window.innerHeight
-        });
-        const lines_layer = new Konva.Layer();
-        const nodes_layer = new Konva.Layer();
-        stage.add(lines_layer);
-        stage.add(nodes_layer);
-        lines_layer.draw();
-        nodes_layer.draw();
+    const stage = new Konva.Stage({
+        container: 'stage',
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+    const lines_layer = new Konva.Layer();
+    const nodes_layer = new Konva.Layer();
+    stage.add(lines_layer);
+    stage.add(nodes_layer);
+    lines_layer.draw();
+    nodes_layer.draw();
 
-        var mknode = true;
-        document.getElementById('mknodeBtn').onclick=function() {
-            mkline = false; mknode = true;
-            document.getElementById("mknodeBtn").style["background-color"] = "skyblue";
-            document.getElementById("mklineBtn").style["background-color"] = "lightgrey";
+    var mknode = true;
+    document.getElementById('mknodeBtn').onclick = function () {
+        mkline = false;
+        mknode = true;
+        document.getElementById("mknodeBtn").style["background-color"] = "skyblue";
+        document.getElementById("mklineBtn").style["background-color"] = "lightgrey";
+
+        if (linePoints.length > 1) {
+            var newConnection = graphing(1);
+            lines_layer.add(newConnection);
+            lines_layer.draw();
         }
+        linePoints = [];
+    };
 
-        var mkline = false;
-        document.getElementById('mklineBtn').onclick =function() {
-            mkline = true; mknode = false;
-            document.getElementById("mklineBtn").style["background-color"] = "skyblue";
-            document.getElementById("mknodeBtn").style["background-color"] = "lightgrey";
-        };
+    var mkline = false;
+    document.getElementById('mklineBtn').onclick = function () {
+        mkline = true;
+        mknode = false;
+        document.getElementById("mklineBtn").style["background-color"] = "skyblue";
+        document.getElementById("mknodeBtn").style["background-color"] = "lightgrey";
+    };
 
-        var mknodesize = 50;
-        document.getElementById('MinusNdSz').onclick=function() {
-            if(mknodesize > 15) {
-                mknodesize -= 5;
-            }
-            document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
-        };
+    var mknodesize = 50;
+    document.getElementById('MinusNdSz').onclick = function () {
+        if (mknodesize > 15) {
+            mknodesize -= 5;
+        }
+        document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
+    };
 
-        document.getElementById('AddNdSz').onclick =function() {
-            mknodesize += 5;
-            document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
-        };
+    document.getElementById('AddNdSz').onclick = function () {
+        mknodesize += 5;
+        document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
+    };
 
-        var linePoints = [];
-        var nodeClicked = false;
+    var PointsVault = [];
+    var linePoints = [];
+    var nodeClicked = false;
+    const club = new Konva.Group();
 
-        stage.on('contentClick', function() {
-            var mousePos = stage.getPointerPosition();
-            var x = mousePos.x;
-            var y = mousePos.y;
+    stage.on('contentClick', function () {
+        var clickPos = stage.getPointerPosition();
 
-            if(nodeClicked) {
-                var nodePos = nodeClicked.getPosition()
+        if (mkline == true) {
+            if (nodeClicked) {
+                var nodePos = nodeClicked.getPosition();
                 console.log('node click on ' + JSON.stringify(nodePos));
 
-                if(mkline == true) {
-                    linePoints.push(nodePos);
-                    if(linePoints.length < 2) return;
-
-                    var newConnection = makeConnection(linePoints[0], linePoints[1])
-                    lines_layer.add(newConnection);
-                    lines_layer.draw();
-                    linePoints = []
-                }
+                linePoints.push(nodePos);
+                PointsVault.push(nodePos);
 
                 nodeClicked = false;
                 return
             }
 
+            linePoints.push(clickPos);
+            PointsVault.push(clickPos);
+        }
+        ;
 
-            console.log('content click on ' + JSON.stringify(mousePos));
 
-            if(mknode == true) {
-                var newColor = 'lightgrey';
-                var newInnerColor = "";
-                // Get the color here
-                // TODO: Use the correct colors
-                if(document.getElementById("red").checked == true){
-                    newColor = 'red';
-                    newInnerColor = "#f44842";
+        console.log('content click on ' + JSON.stringify(clickPos));
 
-                }else if(document.getElementById("green").checked == true){
-                    newColor = '#7BBC9B';
-                    newInnerColor = '#A9DAAA';
+        if (mknode == true) {
+            var newColor = 'lightgrey';
+            var newInnerColor = "";
+            // Get the color here
+            // TODO: Use the correct colors
+            if (document.getElementById("red").checked == true) {
+                newColor = 'red';
+                newInnerColor = "#f44842";
 
-                }else if(document.getElementById("blue").checked == true){
-                    newColor = 'blue'
-                    newInnerColor = 'blue'
-                }
+            } else if (document.getElementById("green").checked == true) {
+                newColor = '#7BBC9B';
+                newInnerColor = '#A9DAAA';
 
-                const node = makeNode(x, y, mknodesize, newColor, newInnerColor);
-                nodes_layer.add(node);
-                nodes_layer.draw();
-
+            } else if (document.getElementById("blue").checked == true) {
+                newColor = 'blue';
+                newInnerColor = 'blue';
             }
 
+            const node = makeNode(clickPos.x, clickPos.y, mknodesize, newColor, newInnerColor);
+            nodes_layer.add(node);
+            nodes_layer.draw();
+
+        }
+
+    });
+
+
+    function makeNode(x, y, r, color, innerColor) {
+        const group = new Konva.Group({
+            x: x,
+            y: y
         });
+        const outerNode = new Konva.Circle({
+            radius: r,
+            fill: color,
+            shadowColor: color,
+            shadowBlur: 80
+        });
+        group.add(outerNode);
+        const health = new Konva.Wedge({
+            radius: r,
+            angle: 0,
+            fill: 'grey',
+            strokeWidth: 4,
+            rotation: -90
+        });
+        // add the shape to the layer
+        group.add(health);
 
-
-
-        function makeNode(x, y, r , color, innerColor) {
-            const group = new Konva.Group({
-                x: x,
-                y: y
-            });
-            const outerNode = new Konva.Circle({
-                radius: r,
-                fill: color,
-                shadowColor: color,
-                shadowBlur: 80
-            });
-            group.add(outerNode);
-            const health = new Konva.Wedge({
-                radius: r,
-                angle: 0,
-                fill: 'grey',
-                strokeWidth: 4,
-                rotation: -90
-            });
-            // add the shape to the layer
-            group.add(health);
-
-            const innerNode = new Konva.Circle({
-                radius: r-15,
-                fill: innerColor
-            });
-            group.add(innerNode);
-            const wedge = new Konva.Wedge({
-                radius: r,
-                angle: 180,
-                rotation: 125,
-                fill: 'black',
-                opacity: 0.08
-            });
-            group.add(wedge);
-            const select = new Konva.Circle({
-                name: 'select',
-                radius: r,
-                fillEnabled: false,
-                strokeScaleEnabled: false,
-                stroke: 'orange',
-                strokeWidth: 5,
-                visible: false
-            });
-            group.add(select);
+        const innerNode = new Konva.Circle({
+            radius: r - 15,
+            fill: innerColor
+        });
+        group.add(innerNode);
+        const wedge = new Konva.Wedge({
+            radius: r,
+            angle: 180,
+            rotation: 125,
+            fill: 'black',
+            opacity: 0.08
+        });
+        group.add(wedge);
+        const select = new Konva.Circle({
+            name: 'select',
+            radius: r,
+            fillEnabled: false,
+            strokeScaleEnabled: false,
+            stroke: 'orange',
+            strokeWidth: 5,
+            visible: false
+        });
+        group.add(select);
 
 //            group.on('click', function() {
 //                var s = this.find('.select')[0];
@@ -209,91 +233,353 @@
 //                nodes_layer.draw();
 //
 //            });
-            group.on('click', function() {
-                nodeClicked = this;
-            });
+        group.on('click', function () {
+            nodeClicked = this;
+        });
 
-            group.draggable(true);
-            return group;
+        group.draggable(true);
+        return group;
+    }
+
+    // NOT USED
+    function makeConnection(point1, point2) {
+        var x1 = point1.x;
+        var y1 = point1.y;
+        var x2 = point2.x;
+        var y2 = point2.y;
+        const line_radius = 20;
+        var line_rotation = 0;
+        const group = new Konva.Group();
+
+        if (y1 > y2) {
+            console.log("node1 is lower than node2");
+            if (x1 < x2) {
+                console.log("node1 is to the left of node2");
+                var line01 = makeLine(x1, y1, x1, y2 + line_radius);
+                group.add(line01);
+                var line02 = makeLine(x1 + line_radius, y2, x2, y2);
+                group.add(line02);
+                group.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
+                line_rotation = 270;
+            } else {
+                console.log("node1 is to the right of node2");
+                var line03 = makeLine(x1, y1, x1, y2 + line_radius);
+                group.add(line03);
+                var line04 = makeLine(x1 - line_radius, y2, x2, y2);
+                group.add(line04);
+                line_rotation = 90; //////
+                group.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
+            }
+        } else {
+            console.log("node1 is higher than node2");
+            if (x1 < x2) {
+                console.log("node1 is to the left of node2");
+                var line05 = makeLine(x2, y2, x2, y1 + line_radius);
+                group.add(line05);
+                var line06 = makeLine(x1, y1, x2 - line_radius, y1);
+                group.add(line06);
+                group.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
+            } else {
+                console.log("node1 is to the right of node2");
+                var line07 = makeLine(x1, y1, x2 + line_radius, y1);
+                group.add(line07);
+                var line08 = makeLine(x2, y1 + line_radius, x2, y2);
+                group.add(line08);
+                group.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
+            }
         }
 
-        function makeConnection(point1, point2) {
-            var x1 = point1.x;
-            var y1 = point1.y;
-            var x2 = point2.x;
-            var y2 = point2.y;
-            const line_radius = 20;
-            var line_rotation = 0;
-            const group = new Konva.Group();
+        // TODO: makeArc is not being called, also arc needs to be added to group
+        function makeArc(x, y, rot) {
+            return new Konva.Arc({
+                x: x,
+                y: y,
+                innerRadius: line_radius,
+                outerRadius: line_radius,
+                angle: 90,
+                rotation: rot,
+                stroke: '#1C3959',
+                strokeWidth: 10
+            });
+        };
+
+        return group;
+    }
+
+
+    //NOT USED
+    function makeAconnection(number) { // NOT USED
+        const line_radius = 20;
+        var line_rotation = 0;
+
+
+        console.log(linePoints.length);
+
+
+        for (n = 0; n < linePoints.length - number; n++) {
+            // change to use x and y propertis
+            var x1 = (linePoints[n])[0];
+            var y1 = (linePoints[n])[1];
+            var x2 = (linePoints[n + 1])[0];
+            var y2 = (linePoints[n + 1])[1];
 
             if (y1 > y2) {
                 console.log("node1 is lower than node2");
                 if (x1 < x2) {
                     console.log("node1 is to the left of node2");
-                    var line01 = makeLine(x1, y1, x1, y2 + line_radius);
-                    group.add(line01);
-                    var line02 = makeLine(x1 + line_radius, y2, x2, y2);
-                    group.add(line02);
-                    group.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
+                    var line01 = makeLine(x1, y1, x2, y2);
+                    club.add(line01);
+
+
+                    club.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
                     line_rotation = 270;
                 } else {
                     console.log("node1 is to the right of node2");
-                    var line03 = makeLine(x1, y1, x1, y2 + line_radius);
-                    group.add(line03);
-                    var line04 = makeLine(x1 - line_radius, y2, x2, y2);
-                    group.add(line04);
-                    line_rotation = 90; //////
-                    group.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
+                    var line02 = makeLine(x1, y1, x2, y2);
+                    club.add(line02);
+
+
+                    line_rotation = 90;
+                    club.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
                 }
             } else {
                 console.log("node1 is higher than node2");
                 if (x1 < x2) {
                     console.log("node1 is to the left of node2");
-                    var line05 = makeLine(x2, y2, x2, y1 + line_radius);
-                    group.add(line05);
-                    var line06 = makeLine(x1, y1, x2 - line_radius, y1);
-                    group.add(line06);
-                    group.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
+                    var line03 = makeLine(x2, y2, x2, y1 + line_radius);
+                    club.add(line03);
+
+
+                    club.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
                 } else {
                     console.log("node1 is to the right of node2");
-                    var line07 = makeLine(x1, y1, x2 + line_radius, y1);
-                    group.add(line07);
-                    var line08 = makeLine(x2, y1 + line_radius, x2, y2);
-                    group.add(line08);
-                    group.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
+                    var line04 = makeLine(x1, y1, x2 + line_radius, y1);
+                    club.add(line04);
+
+
+                    club.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
                 }
             }
-
-            // TODO: makeArc is not being called, also arc needs to be added to group
-            function makeArc(x, y, rot) {
-                return new Konva.Arc({
-                    x: x,
-                    y: y,
-                    innerRadius: line_radius,
-                    outerRadius: line_radius,
-                    angle: 90,
-                    rotation: rot,
-                    stroke: '#1C3959',
-                    strokeWidth: 10
-                })
-            }
-
-            return group;
         }
 
-
-
-        function makeLine(x1, y1, x2, y2) {
-            console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2);
-            const line = new Konva.Line({
-                points: [x1, y1, x2, y2],
+        function makeArc(x, y, rot) {
+            return new Konva.Arc({
+                x: x,
+                y: y,
+                innerRadius: line_radius,
+                outerRadius: line_radius,
+                angle: 90,
+                rotation: rot,
                 stroke: '#1C3959',
                 strokeWidth: 10
             });
-            return line;
+        };
+
+        return club;
+
+    }
+
+
+    function makeLine(x1, y1, x2, y2) {
+        console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2);
+        const line = new Konva.Line({
+            points: [x1, y1, x2, y2],
+            stroke: '#1C3959',
+            strokeWidth: 10
+        });
+        return line;
+    }
+
+    //NOT USED
+    function newtest() {
+        const line_radius = 20;
+        var line_rotation = 0;
+        const club = new Konva.Group();
+
+        for (n = 0; n < linePoints.length - 1; n++) {
+            var x1 = (linePoints[n])[0];
+            var y1 = (linePoints[n])[1];
+            var x2 = (linePoints[n + 1])[0];
+            var y2 = (linePoints[n + 1])[1];
+            var x3 = (linePoints[n + 2])[0];
+            var y3 = (linePoints[n + 2])[1];
+
+            if (y1 < y2) {
+                console.log("point1 is higher than point2");
+
+                if (x1 < x2) {
+                    console.log('point2 is to the right of point1');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+                } else if (x1 > x2) {
+                    console.log('point1 is to the right of point2');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+
+                } else if (x1 == x2) {
+                    console.log('point1 and point2 are even on the x axis');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+                }
+
+            } else if (y1 > y2) {
+                console.log("point2 is higher than point1");
+                if (x1 < x2) {
+                    console.log('point2 is to the right of point1');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+                } else if (x1 > x2) {
+                    console.log('point1 is to the right of point2');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+
+                } else if (x1 == x2) {
+                    console.log('point1 and point2 are even on the x axis');
+                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
+
+                    club.add(arcPlace(x2, x3));
+
+                }
+
+
+            } else if (y1 == y2) {
+                console.log("point1 and point2 are even on the y axis");
+
+            }
+
+
         }
 
-    </script>
+        function arcPlace(x2, x3) {
+            if (x2 > x3) {
+                console.log('x2 is to the right of x3');
+                club.add(makeArc(x3 + line_radius, y2 + line_radius, 180));
+
+            } else if (x2 < x3) {
+                console.log('x2 is to the left of x3');
+                club.add(makeArc(x3 - line_radius, y2 + line_radius, 270))
+
+            }
+
+        }
+
+        function makeArc(x, y, rot) {
+            return new Konva.Arc({
+                x: x,
+                y: y,
+                innerRadius: line_radius,
+                outerRadius: line_radius,
+                angle: 90,
+                rotation: rot,
+                stroke: '#1C3959',
+                strokeWidth: 10
+            });
+        };
+
+    }
+
+
+    function graphing(n) {
+        console.log("GRAPHING")
+        var p1, p2, m;
+
+        // Draw the lines
+        for (i = 0; i < linePoints.length - n; i++) {
+
+            p1 = linePoints[i];
+            p2 = linePoints[i + 1];
+            console.log("p1: " + p1 + " p2: " + p2)
+            var yRange = Math.abs(p1.y - p2.y);
+            var xRange = Math.abs(p1.x - p2.x);
+
+            if (yRange < xRange) {
+                console.log("you are trying to make a the y points equal");
+                p2.y = p1.y;
+
+                if (p2.x > p1.x) {
+                    //p2.x is to the right
+                    console.log('p2 is right');
+                    club.add(makeLine(p1.x + 20, p1.y, p2.x - 20, p2.y));
+                } else {
+                    //p1.x is to the right
+                    console.log('p1 is right');
+                    club.add(makeLine(p1.x - 20, p1.y, p2.x + 20, p2.y));
+                }
+            } else {
+                console.log("you are trying to make a the x points equal");
+                p2.x = p1.x;
+
+                if (p2.y > p1.y) {
+                    club.add(makeLine(p1.x, p1.y + 20, p2.x, p2.y - 20));
+                } else {
+                    club.add(makeLine(p1.x, p1.y - 20, p2.x, p2.y + 20));
+                }
+
+            }
+        }
+
+        function makeArc(x, y, rot) {
+            return new Konva.Arc({
+                x: x,
+                y: y,
+                innerRadius: 20,
+                outerRadius: 20,
+                angle: 90,
+                rotation: rot,
+                stroke: '#1C3959',
+                strokeWidth: 10
+            });
+        };
+
+
+        // Draw the curves -- this depends on perpendicular lines!
+        // Loop through the mid-points only
+        for (i = 1; i < (linePoints.length - 1); i++) {
+            p1 = linePoints[i - 1];
+            m = linePoints[i];
+            p2 = linePoints[i + 1];
+
+
+            // Arc direction login below depends on p1 being on the x-axis
+            if (p1.x != m.x) {
+                var temp = p1;
+                p1 = p2;
+                p2 = temp;
+            }
+            console.log(p1, m, p2);
+
+            if (p1.y < m.y) { // p1 is above the midpoint, its either an L or a J
+                if (p2.x > m.x) { // p2 is to the right of mid-point
+                    club.add(makeArc(m.x + 20, m.y - 20, 90)); // case 1 L
+                    console.log('1');
+                } else { // p2 is to the left of mid-point
+                    club.add(makeArc(m.x - 20, m.y - 20, 360)); // case 2 J
+                    console.log('2');
+                }
+            } else { // p1 is below the midpoint
+                if (p2.x > m.x) { // p2 is to the right of mid-point
+                    club.add(makeArc(m.x + 20, m.y + 20, 180)); // case 3 ↱
+                    console.log("3");
+                } else { // p2 is to the left of mid-point
+                    club.add(makeArc(m.x - 20, m.y + 20, 270)); // case 4 ↰
+                    console.log("4")
+                }
+            }
+        }
+        return club;
+    }
+
+</script>
 
 </body>
 </html>
