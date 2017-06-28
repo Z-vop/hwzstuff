@@ -87,11 +87,7 @@
         document.getElementById("mknodeBtn").style["background-color"] = "skyblue";
         document.getElementById("mklineBtn").style["background-color"] = "lightgrey";
 
-        if (linePoints.length > 1) {
-            var newConnection = graphing(1);
-            lines_layer.add(newConnection);
-            lines_layer.draw();
-        }
+        // Always clear out line points if not in make-line mode
         linePoints = [];
     };
 
@@ -116,47 +112,44 @@
         document.getElementById('nodesizeLabel').innerHTML = mknodesize.toString();
     };
 
-    var PointsVault = [];
     var linePoints = [];
-    var nodeClicked = false;
-    const club = new Konva.Group();
+    var nodeClicked = false; // set by node to let us know it was clicked
+    const newLine = new Konva.Group();
 
     stage.on('contentClick', function () {
         var clickPos = stage.getPointerPosition();
-
         if (mkline == true) {
             if (nodeClicked) {
                 var nodePos = nodeClicked.getPosition();
                 console.log('node click on ' + JSON.stringify(nodePos));
-
                 linePoints.push(nodePos);
-                PointsVault.push(nodePos);
-
                 nodeClicked = false;
-                return
+                // If we just pushed 2nd node (linePoints.length > 1) then draw the line
+                if (linePoints.length > 1) {
+                    var newConnection = drawMultiSegmentLine(1);
+                    lines_layer.add(newConnection);
+                    lines_layer.draw();
+                    linePoints = [];
+                }
+                return // short-circuit rest of contentClick
             }
-
+            // If there are no points yet, we should not be pushing a mid-point
             linePoints.push(clickPos);
-            PointsVault.push(clickPos);
         }
-        ;
-
 
         console.log('content click on ' + JSON.stringify(clickPos));
 
         if (mknode == true) {
             var newColor = 'lightgrey';
-            var newInnerColor = "";
+            var newInnerColor = "grey";
             // Get the color here
             // TODO: Use the correct colors
             if (document.getElementById("red").checked == true) {
                 newColor = 'red';
                 newInnerColor = "#f44842";
-
             } else if (document.getElementById("green").checked == true) {
                 newColor = '#7BBC9B';
                 newInnerColor = '#A9DAAA';
-
             } else if (document.getElementById("blue").checked == true) {
                 newColor = 'blue';
                 newInnerColor = 'blue';
@@ -165,9 +158,7 @@
             const node = makeNode(clickPos.x, clickPos.y, mknodesize, newColor, newInnerColor);
             nodes_layer.add(node);
             nodes_layer.draw();
-
         }
-
     });
 
 
@@ -217,168 +208,14 @@
         });
         group.add(select);
 
-//            group.on('click', function() {
-//                var s = this.find('.select')[0];
-//                s.visible(!s.isVisible());
-//                nodes_layer.draw();
-//                setInterval(
-//                    function () {
-//                        if (health.angle() > 360) {
-//                            health.angle(0);
-//                        }
-//                        health.angle(health.angle() + 1);
-//                        health.rotation(-90 - health.angle() / 2);
-//                        nodes_layer.draw();
-//                    }, 100);
-//                nodes_layer.draw();
-//
-//            });
         group.on('click', function () {
+            // This is because we always get a content click and this lets us differentiate
             nodeClicked = this;
         });
 
         group.draggable(true);
         return group;
     }
-
-    // NOT USED
-    function makeConnection(point1, point2) {
-        var x1 = point1.x;
-        var y1 = point1.y;
-        var x2 = point2.x;
-        var y2 = point2.y;
-        const line_radius = 20;
-        var line_rotation = 0;
-        const group = new Konva.Group();
-
-        if (y1 > y2) {
-            console.log("node1 is lower than node2");
-            if (x1 < x2) {
-                console.log("node1 is to the left of node2");
-                var line01 = makeLine(x1, y1, x1, y2 + line_radius);
-                group.add(line01);
-                var line02 = makeLine(x1 + line_radius, y2, x2, y2);
-                group.add(line02);
-                group.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
-                line_rotation = 270;
-            } else {
-                console.log("node1 is to the right of node2");
-                var line03 = makeLine(x1, y1, x1, y2 + line_radius);
-                group.add(line03);
-                var line04 = makeLine(x1 - line_radius, y2, x2, y2);
-                group.add(line04);
-                line_rotation = 90; //////
-                group.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
-            }
-        } else {
-            console.log("node1 is higher than node2");
-            if (x1 < x2) {
-                console.log("node1 is to the left of node2");
-                var line05 = makeLine(x2, y2, x2, y1 + line_radius);
-                group.add(line05);
-                var line06 = makeLine(x1, y1, x2 - line_radius, y1);
-                group.add(line06);
-                group.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
-            } else {
-                console.log("node1 is to the right of node2");
-                var line07 = makeLine(x1, y1, x2 + line_radius, y1);
-                group.add(line07);
-                var line08 = makeLine(x2, y1 + line_radius, x2, y2);
-                group.add(line08);
-                group.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
-            }
-        }
-
-        // TODO: makeArc is not being called, also arc needs to be added to group
-        function makeArc(x, y, rot) {
-            return new Konva.Arc({
-                x: x,
-                y: y,
-                innerRadius: line_radius,
-                outerRadius: line_radius,
-                angle: 90,
-                rotation: rot,
-                stroke: '#1C3959',
-                strokeWidth: 10
-            });
-        };
-
-        return group;
-    }
-
-
-    //NOT USED
-    function makeAconnection(number) { // NOT USED
-        const line_radius = 20;
-        var line_rotation = 0;
-
-
-        console.log(linePoints.length);
-
-
-        for (n = 0; n < linePoints.length - number; n++) {
-            // change to use x and y propertis
-            var x1 = (linePoints[n])[0];
-            var y1 = (linePoints[n])[1];
-            var x2 = (linePoints[n + 1])[0];
-            var y2 = (linePoints[n + 1])[1];
-
-            if (y1 > y2) {
-                console.log("node1 is lower than node2");
-                if (x1 < x2) {
-                    console.log("node1 is to the left of node2");
-                    var line01 = makeLine(x1, y1, x2, y2);
-                    club.add(line01);
-
-
-                    club.add(makeArc(x1 + line_radius, y2 + line_radius, 180));
-                    line_rotation = 270;
-                } else {
-                    console.log("node1 is to the right of node2");
-                    var line02 = makeLine(x1, y1, x2, y2);
-                    club.add(line02);
-
-
-                    line_rotation = 90;
-                    club.add(makeArc(x1 - line_radius, y2 + line_radius, 270));
-                }
-            } else {
-                console.log("node1 is higher than node2");
-                if (x1 < x2) {
-                    console.log("node1 is to the left of node2");
-                    var line03 = makeLine(x2, y2, x2, y1 + line_radius);
-                    club.add(line03);
-
-
-                    club.add(makeArc(x2 - line_radius, y1 + line_radius, 270))
-                } else {
-                    console.log("node1 is to the right of node2");
-                    var line04 = makeLine(x1, y1, x2 + line_radius, y1);
-                    club.add(line04);
-
-
-                    club.add(makeArc(x2 + line_radius, y1 + line_radius, 180))
-                }
-            }
-        }
-
-        function makeArc(x, y, rot) {
-            return new Konva.Arc({
-                x: x,
-                y: y,
-                innerRadius: line_radius,
-                outerRadius: line_radius,
-                angle: 90,
-                rotation: rot,
-                stroke: '#1C3959',
-                strokeWidth: 10
-            });
-        };
-
-        return club;
-
-    }
-
 
     function makeLine(x1, y1, x2, y2) {
         console.log("makeLine: x1: " + x1 + " y1:" + y1 + " x2:" + x2 + " y2:" + y2);
@@ -390,141 +227,57 @@
         return line;
     }
 
-    //NOT USED
-    function newtest() {
-        const line_radius = 20;
-        var line_rotation = 0;
-        const club = new Konva.Group();
-
-        for (n = 0; n < linePoints.length - 1; n++) {
-            var x1 = (linePoints[n])[0];
-            var y1 = (linePoints[n])[1];
-            var x2 = (linePoints[n + 1])[0];
-            var y2 = (linePoints[n + 1])[1];
-            var x3 = (linePoints[n + 2])[0];
-            var y3 = (linePoints[n + 2])[1];
-
-            if (y1 < y2) {
-                console.log("point1 is higher than point2");
-
-                if (x1 < x2) {
-                    console.log('point2 is to the right of point1');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-                } else if (x1 > x2) {
-                    console.log('point1 is to the right of point2');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-
-                } else if (x1 == x2) {
-                    console.log('point1 and point2 are even on the x axis');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-                }
-
-            } else if (y1 > y2) {
-                console.log("point2 is higher than point1");
-                if (x1 < x2) {
-                    console.log('point2 is to the right of point1');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-                } else if (x1 > x2) {
-                    console.log('point1 is to the right of point2');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-
-                } else if (x1 == x2) {
-                    console.log('point1 and point2 are even on the x axis');
-                    club.add(makeLine(x1, y1, x2, y2 - line_radius));
-
-                    club.add(arcPlace(x2, x3));
-
-                }
-
-
-            } else if (y1 == y2) {
-                console.log("point1 and point2 are even on the y axis");
-
-            }
-
-
-        }
-
-        function arcPlace(x2, x3) {
-            if (x2 > x3) {
-                console.log('x2 is to the right of x3');
-                club.add(makeArc(x3 + line_radius, y2 + line_radius, 180));
-
-            } else if (x2 < x3) {
-                console.log('x2 is to the left of x3');
-                club.add(makeArc(x3 - line_radius, y2 + line_radius, 270))
-
-            }
-
-        }
-
-        function makeArc(x, y, rot) {
-            return new Konva.Arc({
-                x: x,
-                y: y,
-                innerRadius: line_radius,
-                outerRadius: line_radius,
-                angle: 90,
-                rotation: rot,
-                stroke: '#1C3959',
-                strokeWidth: 10
-            });
-        };
-
-    }
-
-
-    function graphing(n) {
-        console.log("GRAPHING")
+    function drawMultiSegmentLine(n) {
+        console.log("GRAPHING");
         var p1, p2, m;
+
+        // Make P1 align on either X or Y axis (whichever is closest) with P2
+        // Point {x: x, y: y}
+        function squareP1toP2(p1, p2) {
+            // To square up the lines, are we closest to the Y axis or X axis?
+            var yRange = Math.abs(p1.y - p2.y);
+            var xRange = Math.abs(p1.x - p2.x);
+            if (yRange < xRange) {
+                // Y is closest
+                p1.y = p2.y;
+            } else {
+                p1.x = p2.x;
+            }
+        }
+
+        // If there is a midpoint (at least 3 points)
+        // Look at the last point (the ending node)
+        // Make sure that the midpoint before the ending node (length - 2)
+        // Has either the same x value or the same y value
+        if (linePoints.length > 2) {
+            squareP1toP2(linePoints[linePoints.length - 2], linePoints[linePoints.length - 1])
+        }
 
         // Draw the lines
         for (i = 0; i < linePoints.length - n; i++) {
-
             p1 = linePoints[i];
             p2 = linePoints[i + 1];
-            console.log("p1: " + p1 + " p2: " + p2)
-            var yRange = Math.abs(p1.y - p2.y);
-            var xRange = Math.abs(p1.x - p2.x);
+            squareP1toP2(p2, p1);
+            console.log(JSON.stringify(linePoints));
 
-            if (yRange < xRange) {
-                console.log("you are trying to make a the y points equal");
-                p2.y = p1.y;
-
+            if (p1.y == p2.y) {
+                // Y axis is equal
                 if (p2.x > p1.x) {
                     //p2.x is to the right
                     console.log('p2 is right');
-                    club.add(makeLine(p1.x + 20, p1.y, p2.x - 20, p2.y));
+                    newLine.add(makeLine(p1.x + 20, p1.y, p2.x - 20, p2.y));
                 } else {
                     //p1.x is to the right
                     console.log('p1 is right');
-                    club.add(makeLine(p1.x - 20, p1.y, p2.x + 20, p2.y));
+                    newLine.add(makeLine(p1.x - 20, p1.y, p2.x + 20, p2.y));
                 }
             } else {
-                console.log("you are trying to make a the x points equal");
-                p2.x = p1.x;
-
+                // X axis is equal
                 if (p2.y > p1.y) {
-                    club.add(makeLine(p1.x, p1.y + 20, p2.x, p2.y - 20));
+                    newLine.add(makeLine(p1.x, p1.y + 20, p2.x, p2.y - 20));
                 } else {
-                    club.add(makeLine(p1.x, p1.y - 20, p2.x, p2.y + 20));
+                    newLine.add(makeLine(p1.x, p1.y - 20, p2.x, p2.y + 20));
                 }
-
             }
         }
 
@@ -540,7 +293,6 @@
                 strokeWidth: 10
             });
         };
-
 
         // Draw the curves -- this depends on perpendicular lines!
         // Loop through the mid-points only
@@ -560,23 +312,23 @@
 
             if (p1.y < m.y) { // p1 is above the midpoint, its either an L or a J
                 if (p2.x > m.x) { // p2 is to the right of mid-point
-                    club.add(makeArc(m.x + 20, m.y - 20, 90)); // case 1 L
+                    newLine.add(makeArc(m.x + 20, m.y - 20, 90)); // case 1 L
                     console.log('1');
                 } else { // p2 is to the left of mid-point
-                    club.add(makeArc(m.x - 20, m.y - 20, 360)); // case 2 J
+                    newLine.add(makeArc(m.x - 20, m.y - 20, 360)); // case 2 J
                     console.log('2');
                 }
             } else { // p1 is below the midpoint
                 if (p2.x > m.x) { // p2 is to the right of mid-point
-                    club.add(makeArc(m.x + 20, m.y + 20, 180)); // case 3 ↱
+                    newLine.add(makeArc(m.x + 20, m.y + 20, 180)); // case 3 ↱
                     console.log("3");
                 } else { // p2 is to the left of mid-point
-                    club.add(makeArc(m.x - 20, m.y + 20, 270)); // case 4 ↰
+                    newLine.add(makeArc(m.x - 20, m.y + 20, 270)); // case 4 ↰
                     console.log("4")
                 }
             }
         }
-        return club;
+        return newLine;
     }
 
 </script>
